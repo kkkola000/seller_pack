@@ -23,7 +23,7 @@ final class Fetcher
                 throw new RuntimeException('Для источника не указана ссылка на файл.');
             }
 
-            return [self::download($url), true];
+            return [self::download($url, (string) ($source['type'] ?? '')), true];
         }
 
         $file = trim((string) ($source['file_path'] ?? ''));
@@ -39,11 +39,15 @@ final class Fetcher
         return [$path, false];
     }
 
-    public static function download(string $url): string
+    public static function download(string $url, string $type = ''): string
     {
         if (!preg_match('~^https?://~i', $url)) {
             throw new RuntimeException('Ссылка должна начинаться с http:// или https://');
         }
+
+        // Ссылку на Google Таблицы / Яндекс Диск превращаем в прямую ссылку на файл
+        $resolved = LinkResolver::resolve($url, $type);
+        $url = $resolved['url'];
 
         $target = tempnam(APP_STORAGE . '/tmp', 'dl_');
         if ($target === false) {
@@ -98,7 +102,45 @@ final class Fetcher
             throw new RuntimeException('Файл по ссылке больше допустимого размера (' . round($max / 1048576) . ' МБ).');
         }
 
+        self::assertLooksLikeFile($target, $type, $resolved['service']);
+
         return $target;
+    }
+
+    /**
+     * Сервисы на закрытый доступ отвечают страницей входа, а не файлом.
+     * Ловим это сразу, иначе ошибка всплывёт как «не удалось прочитать файл».
+     */
+    private static function assertLooksLikeFile(string $path, string $type, string $service): void
+    {
+        $head = ltrim((string) file_get_contents($path, false, null, 0, 512));
+        $head = preg_replace('/^\xEF\xBB\xBF/', '', $head) ?? $head;
+        $lower = strtolower($head);
+
+        if (str_starts_with($lower, '<!doctype html') || str_starts_with($lower, '<html')) {
+            @unlink($path);
+            throw new RuntimeException(
+                'По ссылке пришла веб-страница, а не файл. Обычно это значит, что доступ к документу закрыт. '
+                . 'В Google Таблицах включите «Доступ по ссылке — Просмотр», '
+                . 'на Яндекс Диске — «Поделиться» и публичная ссылка на файл.'
+            );
+        }
+
+        if ($type === 'csv' && str_starts_with($head, 'PK')) {
+            @unlink($path);
+            throw new RuntimeException(
+                'По ссылке скачался файл Excel (.xlsx), а тип источника указан «CSV». '
+                . 'Поменяйте тип источника на Excel.'
+            );
+        }
+
+        if ($type === 'excel' && !str_starts_with($head, 'PK')) {
+            @unlink($path);
+            throw new RuntimeException(
+                'По ссылке скачался не .xlsx' . ($service !== '' ? ' (' . $service . ')' : '')
+                . '. Если это CSV — поменяйте тип источника на CSV, если старый .xls — пересохраните как .xlsx.'
+            );
+        }
     }
 
     /** Сохраняет загруженный админом файл, возвращает имя внутри storage/uploads. */

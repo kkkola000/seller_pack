@@ -91,7 +91,15 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
         <span class="field__label">Ссылка на файл</span>
         <input class="input" type="url" name="source_url" maxlength="1000"
                value="<?= e($val('source_url')) ?>" placeholder="https://postavshik.ru/price.xlsx">
-        <span class="field__hint">Файл будет скачиваться автоматически по расписанию и при ручном запуске импорта.</span>
+        <span class="field__hint">
+          Файл скачивается автоматически по расписанию и при ручном запуске импорта.
+          Кроме прямых ссылок понимаются ссылки на <b>Google Таблицы</b>, <b>Google Диск</b>,
+          <b>Яндекс Документы</b> и <b>Яндекс Диск</b> — вставляйте их как есть, сервис сам
+          подставит прямую ссылку на файл. Документ должен быть открыт по ссылке на просмотр.
+          <?php if (!$isNew && $val('fetch_method') === 'url' && ($service = \App\Import\LinkResolver::service((string) $val('source_url'))) !== null): ?>
+            <br><b>Распознано: <?= e($service) ?>.</b>
+          <?php endif; ?>
+        </span>
       </label>
 
       <div class="grid-2">
