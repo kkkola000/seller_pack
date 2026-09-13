@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yml_catalog date="2026-09-13 10:00">
+  <shop>
+    <name>Пример поставщика</name>
+    <currencies><currency id="RUB" rate="1"/></currencies>
+    <categories><category id="1">Детские товары</category></categories>
+    <offers>
+      <offer id="10021" available="true">
+        <name>Автокресло Anex Sport 0+</name>
+        <vendorCode>AX-SP-001</vendorCode>
+        <price>24990</price>
+        <currencyId>RUB</currencyId>
+        <count>4</count>
+        <picture>https://example.com/img/ax-sp-001.jpg</picture>
+      </offer>
+      <offer id="10022" available="false">
+        <name>Дождевик универсальный Anex</name>
+        <vendorCode>AX-RC-010</vendorCode>
+        <price>1490</price>
+        <currencyId>RUB</currencyId>
+        <count>0</count>
+      </offer>
+    </offers>
+  </shop>
+</yml_catalog>

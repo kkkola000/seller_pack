@@ -1,0 +1,18 @@
+# Работает, если корневой каталог сайта в Plesk указывает на корень проекта.
+# Рекомендуется всё же указать в Plesk корень документов: .../catalog/public
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Служебные каталоги наружу не отдаём
+    RewriteRule ^(app|db|bin|storage)/ - [F,L]
+    RewriteRule ^config(\.sample)?\.php$ - [F,L]
+
+    # Всё остальное обслуживает public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<FilesMatch "^(config\.php|config\.sample\.php|\.gitignore|composer\.json)$">
+    Require all denied
+</FilesMatch>

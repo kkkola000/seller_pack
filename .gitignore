@@ -1,0 +1,10 @@
+config.php
+storage/uploads/*
+storage/tmp/*
+storage/logs/*
+!storage/uploads/.gitkeep
+!storage/tmp/.gitkeep
+!storage/logs/.gitkeep
+.idea/
+.vscode/
+*.log
