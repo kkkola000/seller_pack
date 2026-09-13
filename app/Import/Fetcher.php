@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Import;
 
+use App\Import\Readers\ExcelReader;
 use App\Support\Config;
 use RuntimeException;
 
@@ -126,19 +127,21 @@ final class Fetcher
             );
         }
 
-        if ($type === 'csv' && str_starts_with($head, 'PK')) {
+        $excelFormat = ExcelReader::format($path);
+
+        if ($type === 'csv' && $excelFormat !== '') {
             @unlink($path);
             throw new RuntimeException(
-                'По ссылке скачался файл Excel (.xlsx), а тип источника указан «CSV». '
+                'По ссылке скачался файл Excel (.' . $excelFormat . '), а тип источника указан «CSV». '
                 . 'Поменяйте тип источника на Excel.'
             );
         }
 
-        if ($type === 'excel' && !str_starts_with($head, 'PK')) {
+        if ($type === 'excel' && $excelFormat === '') {
             @unlink($path);
             throw new RuntimeException(
-                'По ссылке скачался не .xlsx' . ($service !== '' ? ' (' . $service . ')' : '')
-                . '. Если это CSV — поменяйте тип источника на CSV, если старый .xls — пересохраните как .xlsx.'
+                'По ссылке скачался не файл Excel' . ($service !== '' ? ' (' . $service . ')' : '')
+                . '. Если это CSV — поменяйте тип источника на CSV.'
             );
         }
     }
@@ -158,7 +161,7 @@ final class Fetcher
         $original  = (string) ($file['name'] ?? 'price');
         $extension = strtolower(pathinfo($original, PATHINFO_EXTENSION));
         $allowed = match ($type) {
-            'excel' => ['xlsx', 'xlsm'],
+            'excel' => ['xlsx', 'xlsm', 'xls'],
             'csv'   => ['csv', 'txt', 'tsv'],
             'yml'   => ['xml', 'yml'],
             default => [],

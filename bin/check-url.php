@@ -19,7 +19,7 @@ require_once dirname(__DIR__) . '/app/bootstrap.php';
 use App\Import\Fetcher;
 use App\Import\LinkResolver;
 use App\Import\Readers\CsvReader;
-use App\Import\Readers\XlsxReader;
+use App\Import\Readers\ExcelReader;
 use App\Import\Readers\YmlReader;
 
 $args = array_slice($argv, 1);
@@ -79,7 +79,7 @@ try {
         }
         echo "\nДоступные теги: " . implode(', ', $preview['tags']) . "\n";
     } else {
-        $reader = $type === 'excel' ? new XlsxReader($file, 1) : new CsvReader($file);
+        $reader = $type === 'excel' ? ExcelReader::open($file, 1) : new CsvReader($file);
         foreach ($reader->preview(6) as $i => $row) {
             $cells = [];
             foreach (array_slice($row, 0, 8) as $index => $value) {

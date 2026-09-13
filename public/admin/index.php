@@ -13,6 +13,30 @@ use App\Models\SourceRepository;
 use App\Support\Auth;
 use App\Support\Csrf;
 use App\Support\Db;
+use App\Support\Migrator;
+
+/**
+ * Любая необработанная ошибка в админке должна показывать текст, а не пустую
+ * страницу: подробности видны только авторизованному администратору.
+ */
+set_exception_handler(static function (Throwable $exception): void {
+    error_log('[admin] ' . $exception);
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: text/html; charset=utf-8');
+    }
+    $detailed = Auth::check() || (bool) App\Support\Config::get('debug', false);
+    echo '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        . '<title>Ошибка</title><link rel="stylesheet" href="../assets/css/admin.css"></head><body>'
+        . '<main class="a-main a-main--narrow"><h1 class="a-title">Что-то пошло не так</h1>'
+        . '<div class="alert alert--error">'
+        . ($detailed ? e($exception->getMessage()) : 'Внутренняя ошибка сервиса.')
+        . '</div><p class="muted small">Подробности записаны в storage/logs/php-error.log.<br>'
+        . 'Если вы только что обновили файлы проекта, выполните <code>./deploy/update.sh</code> '
+        . 'или откройте админку и нажмите «Обновить базу».</p>'
+        . '<p><a class="btn btn--ghost" href="index.php">Вернуться в админку</a></p></main></body></html>';
+});
 
 try {
     if (!Db::tableExists('sources')) {
@@ -56,6 +80,33 @@ if ($page === 'logout') {
 
 Auth::requireLogin();
 Csrf::check();
+
+/**
+ * Частый случай: файлы обновили, а структуру базы — нет. Раньше это давало
+ * пустую страницу с кодом 500 при сохранении, теперь — понятное сообщение
+ * и кнопка «Обновить базу» прямо в админке.
+ */
+$pendingMigrations = Migrator::pending();
+
+if ($page === 'migrate') {
+    try {
+        $result = Migrator::migrate();
+        flash('success', $result['applied'] === []
+            ? 'База данных уже обновлена.'
+            : 'База данных обновлена: ' . implode(', ', $result['applied']) . '. '
+              . 'Запустите импорт, чтобы заполнить новые поля.');
+    } catch (Throwable $exception) {
+        flash('error', 'Не удалось обновить базу: ' . $exception->getMessage());
+    }
+    redirect('index.php');
+}
+
+$writeActions = ['source-save', 'source-delete', 'source-toggle', 'import-run', 'import-all'];
+if ($pendingMigrations !== [] && in_array($page, $writeActions, true)) {
+    flash('error', 'Структура базы данных устарела, поэтому изменения не сохранены. '
+        . 'Нажмите «Обновить базу» вверху страницы (или выполните ./deploy/update.sh) и повторите.');
+    redirect('index.php');
+}
 
 /* ---------- Действия ---------- */
 
@@ -179,6 +230,7 @@ function handleSourceSave(): void
         $mapping[$field] = trim((string) ($mappingInput[$field] ?? ''));
     }
     $mapping['in_stock_values'] = trim((string) ($mappingInput['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES));
+    $mapping['out_of_stock_values'] = trim((string) ($mappingInput['out_of_stock_values'] ?? SourceRepository::DEFAULT_OUT_OF_STOCK_VALUES));
 
 
     $errors = [];
@@ -317,6 +369,7 @@ function render(string $view, array $data, string $title, bool $withNav = true):
     extract($data, EXTR_SKIP);
     $pageTitle = $title;
     $showNav = $withNav;
+    $pendingMigrations = $GLOBALS['pendingMigrations'] ?? [];
     $content = APP_ROOT . '/app/Views/' . $view . '.php';
     require APP_ROOT . '/app/Views/admin/layout.php';
 }

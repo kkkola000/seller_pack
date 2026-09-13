@@ -40,6 +40,21 @@ $messages = flash();
     <div class="alert alert--<?= e($message['type']) ?>"><?= e($message['message']) ?></div>
   <?php endforeach; ?>
 
+  <?php if (!empty($pendingMigrations) && $showNav): ?>
+    <div class="alert alert--warning alert--action">
+      <div>
+        <b>База данных не обновлена под новую версию сервиса.</b><br>
+        Пока структура старая, источники не сохраняются и импорт не запускается.
+        Обновление безопасное: товары и настройки не удаляются.
+        <span class="muted small">Ожидают применения: <?= e(implode(', ', $pendingMigrations)) ?></span>
+      </div>
+      <form method="post" action="index.php?page=migrate">
+        <?= \App\Support\Csrf::field() ?>
+        <button class="btn btn--primary" type="submit">Обновить базу</button>
+      </form>
+    </div>
+  <?php endif; ?>
+
   <?php require $content; ?>
 </main>
 

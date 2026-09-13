@@ -303,16 +303,38 @@ img { max-width: 100%; }
     display: grid; grid-template-columns: 280px minmax(0, 1fr);
     gap: 24px; padding: 20px 32px 48px; align-items: start;
   }
+  /* Фильтры не уезжают при прокрутке: панель липкая, длинный список
+     поставщиков прокручивается внутри неё, а «Сбросить всё» всегда на виду. */
   .filters {
-    position: sticky; top: calc(var(--header-h) + 16px); inset: auto;
+    /* inset: auto должен идти ДО top — иначе шорткат сбрасывает его обратно в auto */
+    inset: auto;
+    position: sticky; top: calc(var(--header-h) + 12px);
     visibility: visible; pointer-events: auto; display: block;
+    z-index: 5; /* ниже липкой шапки, иначе панель наезжает на поиск */
+    max-height: calc(100vh - var(--header-h) - 24px);
   }
   .filters__sheet {
-    transform: none; max-height: none; border-radius: var(--radius);
+    transform: none; border-radius: var(--radius);
     box-shadow: var(--shadow); padding-bottom: 0;
+    display: flex; flex-direction: column;
+    max-height: calc(100vh - var(--header-h) - 24px);
   }
+  .filters__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+  .filters__footer { flex: 0 0 auto; background: var(--surface); border-radius: 0 0 var(--radius) var(--radius); }
   .filters__close, .filters__apply { display: none; }
   .backdrop { display: none; }
+
+  /* Строка «Найдено N» со сбросом фильтров тоже остаётся на экране */
+  .catalog__head {
+    position: sticky; top: var(--header-h); z-index: 10;
+    background: var(--bg); margin-bottom: 0;
+    /* фиксированная высота, чтобы шапка списка встала вплотную под строкой */
+    height: 34px; box-sizing: border-box; padding: 6px 0;
+  }
+  .list-head {
+    position: sticky; top: calc(var(--header-h) + 34px); z-index: 9;
+    background: var(--bg); padding-top: 4px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

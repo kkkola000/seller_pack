@@ -218,6 +218,19 @@
     }, { rootMargin: '400px 0px' }).observe(sentinel);
   }
 
+  /* Реальная высота шапки — чтобы липкие блоки становились точно под ней,
+     без щелей, в которые просвечивают карточки. */
+  function syncHeaderHeight() {
+    if (!topbar) { return; }
+    var height = Math.round(topbar.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--header-h', height + 'px');
+  }
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight);
+  if ('ResizeObserver' in window && topbar) {
+    new ResizeObserver(syncHeaderHeight).observe(topbar);
+  }
+
   /* Тень у липкой шапки */
   if (topbar && 'IntersectionObserver' in window) {
     var marker = document.createElement('div');

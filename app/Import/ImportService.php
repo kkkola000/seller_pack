@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Import;
 
 use App\Import\Readers\CsvReader;
+use App\Import\Readers\ExcelReader;
 use App\Import\Readers\RowReader;
 use App\Import\Readers\XlsxReader;
 use App\Import\Readers\YmlReader;
@@ -225,7 +226,7 @@ final class ImportService
     private static function tabularReader(array $source, string $path): RowReader
     {
         return $source['type'] === 'excel'
-            ? new XlsxReader($path, max(1, (int) $source['sheet_index']))
+            ? ExcelReader::open($path, max(1, (int) $source['sheet_index']))
             : new CsvReader($path, (string) $source['csv_delimiter'], (string) $source['csv_encoding']);
     }
 
@@ -346,7 +347,8 @@ final class ImportService
 
         $stock = ValueParser::stock(
             $rawStock,
-            (string) ($mapping['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES)
+            (string) ($mapping['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES),
+            (string) ($mapping['out_of_stock_values'] ?? SourceRepository::DEFAULT_OUT_OF_STOCK_VALUES)
         );
 
         // Валюта: сначала из файла, затем заданная для источника, затем общая по умолчанию.

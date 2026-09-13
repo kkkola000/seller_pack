@@ -8,7 +8,7 @@ use App\Support\Db;
 final class SourceRepository
 {
     public const TYPES = [
-        'excel' => 'Excel (.xlsx)',
+        'excel' => 'Excel (.xlsx, .xls)',
         'csv'   => 'CSV / TXT',
         'yml'   => 'YML-фид (XML)',
     ];
@@ -28,7 +28,8 @@ final class SourceRepository
         'currency' => ['label' => 'Валюта (столбец)', 'required' => false],
     ];
 
-    public const DEFAULT_IN_STOCK_VALUES = 'да,есть,в наличии,+,true,1,in stock,instock,available,много';
+    public const DEFAULT_IN_STOCK_VALUES = 'да,есть,в наличии,в наличие,+,true,in stock,instock,available,много,мало,ограничен';
+    public const DEFAULT_OUT_OF_STOCK_VALUES = 'нет,отсутствует,под заказ,ожидается,распродан,закончил,снят,недоступен,out of stock,нет в наличии';
 
     /** @return array<string,string> Маппинг по умолчанию для YML-фида. */
     public static function defaultYmlMapping(): array

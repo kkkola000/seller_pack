@@ -41,18 +41,30 @@ final class ValueParser
     }
 
     /**
-     * Остаток/наличие. Значение поставщика сохраняется как есть — именно оно
-     * показывается на витрине; статус нужен только для фильтра «в наличии».
+     * Остаток/наличие. Значение поставщика сохраняется дословно — именно оно
+     * показывается на витрине («Есть в наличии», «Более 5», «3 шт»).
+     * Статус нужен только для фильтра и определяется по порядку:
+     * сначала слова «нет в наличии», затем числа, затем слова «в наличии».
      *
      * @return array{qty:?int,status:string,text:string}
      */
-    public static function stock(string $raw, string $inStockValues): array
+    public static function stock(string $raw, string $inStockValues, string $outOfStockValues = ''): array
     {
         $text = self::text($raw, 190);
         if ($text === '') {
             return ['qty' => null, 'status' => 'out_of_stock', 'text' => ''];
         }
 
+        $normalized = self::normalizeText($text);
+
+        // Проверяем первым: «Нет в наличии» содержит «в наличии», иначе попадёт не туда
+        foreach (self::splitList($outOfStockValues) as $needle) {
+            if ($needle !== '' && str_contains($normalized, $needle)) {
+                return ['qty' => null, 'status' => 'out_of_stock', 'text' => $text];
+            }
+        }
+
+        // Чистое число — это количество
         $numeric = str_replace(["\xc2\xa0", ' ', ','], ['', '', '.'], $text);
         $numeric = preg_replace('/^[>~≥+]+/u', '', $numeric) ?? $numeric;
         if (is_numeric($numeric)) {
@@ -60,7 +72,12 @@ final class ValueParser
             return ['qty' => $qty, 'status' => $qty > 0 ? 'in_stock' : 'out_of_stock', 'text' => $text];
         }
 
-        $normalized = self::normalizeText($text);
+        // Число внутри текста: «Более 5», «от 10 шт», «5+ на складе»
+        if (preg_match('/\d+/u', $normalized, $number) === 1) {
+            $value = (int) $number[0];
+            return ['qty' => null, 'status' => $value > 0 ? 'in_stock' : 'out_of_stock', 'text' => $text];
+        }
+
         foreach (self::splitList($inStockValues) as $needle) {
             if ($needle !== '' && str_contains($normalized, $needle)) {
                 return ['qty' => null, 'status' => 'in_stock', 'text' => $text];

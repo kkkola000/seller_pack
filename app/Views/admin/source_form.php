@@ -75,9 +75,9 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
     <div data-fetch="upload" class="js-fetch-block">
       <label class="field">
         <span class="field__label">Файл прайса</span>
-        <input class="input" type="file" name="price_file" accept=".xlsx,.xlsm,.csv,.txt,.tsv,.xml,.yml">
+        <input class="input" type="file" name="price_file" accept=".xlsx,.xlsm,.xls,.csv,.txt,.tsv,.xml,.yml">
         <span class="field__hint">
-          Excel — .xlsx (Excel 2007+), CSV — .csv/.txt/.tsv, YML — .xml/.yml.
+          Excel — .xlsx и .xls (включая Excel 97–2003), CSV — .csv/.txt/.tsv, YML — .xml/.yml.
           <?php if (!$isNew && !empty($source['file_path'])): ?>
             Сейчас загружен: <b><?= e($source['original_filename'] ?: $source['file_path']) ?></b>
             (<?= e(format_datetime($source['updated_at'])) ?>). Новый файл заменит текущий.
@@ -185,15 +185,27 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
       <?php endforeach; ?>
     </div>
 
-    <label class="field">
-      <span class="field__label">Значения, которые считать «в наличии»</span>
-      <input class="input" type="text" name="mapping[in_stock_values]"
-             value="<?= e($mapVal('in_stock_values', SourceRepository::DEFAULT_IN_STOCK_VALUES)) ?>">
-      <span class="field__hint">
-        Через запятую. Влияет только на фильтр «в наличии» — на витрине показывается то значение,
-        которое стоит в прайсе поставщика. Числа распознаются сами: больше 0 — в наличии.
-      </span>
-    </label>
+    <p class="card__hint">
+      На витрине наличие показывается дословно, как в прайсе: «Есть в наличии», «Более 5», «3 шт».
+      Списки ниже нужны только для фильтра «в наличии» и проверяются в таком порядке:
+      сначала «нет в наличии», потом числа в значении, потом «в наличии».
+    </p>
+
+    <div class="grid-2">
+      <label class="field">
+        <span class="field__label">Считать «нет в наличии» (проверяется первым)</span>
+        <input class="input" type="text" name="mapping[out_of_stock_values]"
+               value="<?= e($mapVal('out_of_stock_values', SourceRepository::DEFAULT_OUT_OF_STOCK_VALUES)) ?>">
+        <span class="field__hint">Через запятую. Достаточно части слова: «распродан» поймает и «распродано».</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Считать «в наличии»</span>
+        <input class="input" type="text" name="mapping[in_stock_values]"
+               value="<?= e($mapVal('in_stock_values', SourceRepository::DEFAULT_IN_STOCK_VALUES)) ?>">
+        <span class="field__hint">Значения с числом больше нуля («Более 5», «10 шт») попадают сюда автоматически.</span>
+      </label>
+    </div>
 
     <div class="grid-2">
       <label class="field">
