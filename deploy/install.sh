@@ -170,6 +170,19 @@ if [ -n "$CRON_TOKEN" ]; then
     info "   Либо тип «Получить URL»:"
     printf '\n       https://ВАШ_ДОМЕН/api/cron.php?token=%s\n\n' "$CRON_TOKEN"
 fi
+info "Если каталог должен открываться в подпапке рядом с основным сайтом"
+info "(например https://ВАШ_ДОМЕН/$(basename "$ROOT")/), корень документов не меняйте,"
+info "а сделайте ссылку на public из каталога сайта:"
+case "$ROOT" in
+    /var/www/vhosts/*)
+        SUBSCRIPTION="/var/www/vhosts/$(printf '%s' "${ROOT#/var/www/vhosts/}" | cut -d/ -f1)"
+        ;;
+    *)
+        SUBSCRIPTION="/var/www/vhosts/ВАШ_ДОМЕН"
+        ;;
+esac
+printf '\n       ln -s %s/public %s/httpdocs/%s\n\n' "$ROOT" "$SUBSCRIPTION" "$(basename "$ROOT")"
+
 bold "После настройки корня документов откройте https://ВАШ_ДОМЕН/admin/"
 echo
 warn "Веб-установщик public/install.php больше не нужен (он сам блокируется, когда администратор создан)."

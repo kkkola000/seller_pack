@@ -1,5 +1,6 @@
-# Работает, если корневой каталог сайта в Plesk указывает на корень проекта.
-# Рекомендуется всё же указать в Plesk корень документов: .../catalog/public
+# Этот файл нужен только если корень документов сайта указывает на корень проекта.
+# Правильнее указать в Plesk корень документов .../stocks/public — тогда служебные
+# файлы физически недоступны из интернета и этот .htaccess не задействуется.
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -8,9 +9,12 @@
     RewriteRule ^(app|db|bin|deploy|storage)/ - [F,L]
     RewriteRule ^config(\.sample)?\.php$ - [F,L]
 
-    # Всё остальное обслуживает public/
-    RewriteCond %{REQUEST_URI} !^/public/
-    RewriteRule ^(.*)$ public/$1 [L]
+    # Всё остальное обслуживает public/.
+    # Проверка «путь не начинается с public/» вынесена в сам шаблон: после
+    # внутренней перезаписи путь уже начинается с public/, правило второй раз
+    # не срабатывает и зацикливания не будет — в том числе когда сайт открыт
+    # из подпапки (например /stocks/).
+    RewriteRule ^(?!public/)(.*)$ public/$1 [L]
 </IfModule>
 
 <FilesMatch "^(config\.php|config\.sample\.php|\.gitignore|composer\.json)$">
