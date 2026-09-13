@@ -344,19 +344,27 @@ final class ImportService
             return null;
         }
 
-        [$qty, $availability] = ValueParser::stock(
+        $stock = ValueParser::stock(
             $rawStock,
-            (string) ($mapping['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES),
-            (string) ($mapping['on_order_values'] ?? SourceRepository::DEFAULT_ON_ORDER_VALUES)
+            (string) ($mapping['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES)
+        );
+
+        // Валюта: сначала из файла, затем заданная для источника, затем общая по умолчанию.
+        // Обозначение источника прогоняем через тот же разбор, что и значение из файла,
+        // чтобы «тг» стало KZT, а незнакомое «сум» осталось как есть.
+        $fallbackCurrency = ValueParser::currency(
+            (string) ($source['currency_code'] ?? ''),
+            (string) Config::get('default_currency', 'RUB')
         );
 
         return [
             'sku'          => $sku,
             'name'         => $name,
             'price'        => $price,
-            'currency'     => ValueParser::currency($rawCurrency, (string) Config::get('default_currency', 'RUB')),
-            'stock_qty'    => $qty,
-            'availability' => $availability,
+            'currency'     => ValueParser::currency($rawCurrency, $fallbackCurrency),
+            'stock_qty'    => $stock['qty'],
+            'stock_text'   => $stock['text'],
+            'availability' => $stock['status'],
             'image_url'    => ValueParser::imageUrl($rawImage),
             'extra'        => null,
         ];

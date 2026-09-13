@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS sources (
   skip_rows              INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Сколько строк заголовка пропустить',
   sheet_index            INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Номер листа Excel, 1 = первый',
   price_multiplier       DECIMAL(10,4) NOT NULL DEFAULT 1.0000,
+  currency_code          VARCHAR(16)  NOT NULL DEFAULT '' COMMENT 'Валюта источника, если её нет в файле',
   mapping                TEXT         NOT NULL COMMENT 'JSON: соответствие полей столбцам/тегам',
   last_run_at            DATETIME     NULL,
   last_success_at        DATETIME     NULL,
@@ -48,7 +49,8 @@ CREATE TABLE IF NOT EXISTS products (
   price         DECIMAL(14,2) NULL,
   currency      VARCHAR(8)   NOT NULL DEFAULT 'RUB',
   stock_qty     INT          NULL,
-  availability  ENUM('in_stock','on_order','out_of_stock') NOT NULL DEFAULT 'out_of_stock',
+  stock_text    VARCHAR(190) NULL COMMENT 'Наличие в том виде, как его передал поставщик',
+  availability  ENUM('in_stock','out_of_stock') NOT NULL DEFAULT 'out_of_stock',
   image_url     VARCHAR(1000) NULL,
   extra         TEXT         NULL COMMENT 'JSON с дополнительными полями источника',
   import_run_id BIGINT UNSIGNED NULL,
@@ -79,4 +81,10 @@ CREATE TABLE IF NOT EXISTS import_runs (
   PRIMARY KEY (id),
   KEY idx_runs_source (source_id, started_at),
   CONSTRAINT fk_runs_source FOREIGN KEY (source_id) REFERENCES sources (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  version    VARCHAR(190) NOT NULL,
+  applied_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

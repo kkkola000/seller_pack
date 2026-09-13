@@ -187,19 +187,20 @@ try {
 }
 say('Соединение с базой данных: ок');
 
-$sql = (string) file_get_contents($root . '/db/schema.sql');
-$sql = preg_replace('/^\s*--.*$/m', '', $sql) ?? $sql;
-$created = 0;
-
-foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
-    try {
-        Db::pdo()->exec($statement);
-        $created++;
-    } catch (Throwable $exception) {
-        fail('не удалось применить схему: ' . $exception->getMessage());
-    }
+try {
+    $result = App\Support\Migrator::migrate();
+} catch (Throwable $exception) {
+    fail($exception->getMessage());
 }
-say(sprintf('Схема применена (%d запросов, существующие таблицы не затронуты).', $created));
+
+say(sprintf('Схема применена (%d запросов, существующие таблицы не затронуты).', $result['statements']));
+if ($result['applied'] !== []) {
+    foreach ($result['applied'] as $version) {
+        say('  применена миграция: ' . $version);
+    }
+} elseif (!$result['fresh']) {
+    say('Новых миграций нет.');
+}
 
 $adminUser = trim((string) ($options['admin-user'] ?? env('ADMIN_USER')));
 $adminPass = env('ADMIN_PASS') !== '' ? env('ADMIN_PASS') : (string) ($options['admin-pass'] ?? '');

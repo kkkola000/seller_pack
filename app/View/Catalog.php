@@ -15,8 +15,13 @@ final class Catalog
     public static function card(array $product): string
     {
         $availability = (string) $product['availability'];
-        $badgeLabel = ProductRepository::AVAILABILITY[$availability] ?? '—';
-        $qty = $product['stock_qty'];
+
+        // Наличие показываем ровно так, как его передал поставщик;
+        // подпись по статусу — только запасной вариант для пустого значения.
+        $stockText = trim((string) ($product['stock_text'] ?? ''));
+        if ($stockText === '') {
+            $stockText = ProductRepository::AVAILABILITY[$availability] ?? '—';
+        }
 
         $image = $product['image_url'] ?? null;
         $thumb = $image
@@ -27,11 +32,8 @@ final class Catalog
         $html = '<article class="card" data-id="' . (int) $product['id'] . '">';
         $html .= '<div class="card__thumb' . ($image ? '' : ' card__thumb--empty') . '">' . $thumb . '</div>';
         $html .= '<div class="card__body">';
-        $html .= '<span class="badge badge--' . e($availability) . '">' . e($badgeLabel);
-        if ($availability === 'in_stock' && is_numeric($qty) && (int) $qty > 0) {
-            $html .= ' · ' . (int) $qty . ' шт.';
-        }
-        $html .= '</span>';
+        $html .= '<span class="badge badge--' . e($availability) . '" title="Наличие по данным поставщика">'
+            . e($stockText) . '</span>';
         $html .= '<h3 class="card__title">' . e($product['name']) . '</h3>';
         $html .= '<div class="card__sku" title="Артикул"><span class="card__sku-icon">#</span>' . e($product['sku']) . '</div>';
         $html .= '<div class="card__footer">';

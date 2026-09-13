@@ -1,5 +1,6 @@
 /* Публичный каталог. Mobile-first. */
 :root {
+  color-scheme: light; /* тема всегда светлая, независимо от настроек системы */
   --bg: #f2f3f7;
   --surface: #ffffff;
   --text: #16181d;
@@ -9,12 +10,13 @@
   --accent-soft: #eaf0ff;
   --green: #0fae5e;
   --green-soft: #e3f7ec;
-  --amber: #e8a417;
-  --amber-soft: #fdf3e0;
   --grey-soft: #eef0f5;
   --radius: 16px;
   --shadow: 0 1px 2px rgba(20, 25, 40, .05), 0 8px 24px rgba(20, 25, 40, .05);
   --header-h: 116px;
+  /* Колонки списка на ПК: фото, товар, артикул, наличие, цена, поставщик */
+  --list-cols: 48px minmax(0, 1fr) 180px 150px 120px 170px;
+  --list-gap: 16px;
 }
 
 * { box-sizing: border-box; }
@@ -182,7 +184,6 @@ img { max-width: 100%; }
   padding: 6px 10px; border-radius: 8px; white-space: nowrap;
 }
 .badge--in_stock { background: var(--green); color: #fff; }
-.badge--on_order { background: var(--amber-soft); color: #9a6c05; }
 .badge--out_of_stock { background: var(--grey-soft); color: var(--muted); }
 
 .card__title {
@@ -246,12 +247,50 @@ img { max-width: 100%; }
 }
 .footer a { color: var(--muted); }
 
-/* ---------- Планшет ---------- */
-@media (min-width: 640px) {
-  .grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
-  .card { flex-direction: column; gap: 10px; padding: 14px; }
-  .card__thumb { width: 100%; height: 150px; }
-  .card__title { -webkit-line-clamp: 3; line-clamp: 3; }
+/* ---------- Шапка списка (только ПК) ---------- */
+.list-head { display: none; }
+
+/* ---------- ПК: товары списком ---------- */
+@media (min-width: 900px) {
+  .list-head {
+    display: grid;
+    grid-template-columns: var(--list-cols);
+    gap: var(--list-gap);
+    align-items: center;
+    padding: 0 16px 8px;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    font-weight: 700;
+  }
+  .list-head span:nth-child(5) { text-align: right; }
+  .list-head span:nth-child(6) { text-align: right; }
+
+  .grid { gap: 8px; }
+
+  .card {
+    display: grid;
+    grid-template-columns: var(--list-cols);
+    gap: var(--list-gap);
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 12px;
+  }
+  /* Внутренние обёртки распускаем, чтобы ячейки встали в колонки списка */
+  .card__body, .card__footer { display: contents; }
+
+  .card__thumb { order: 1; width: 48px; height: 48px; border-radius: 8px; }
+  .card__title {
+    order: 2; font-size: 15px;
+    -webkit-line-clamp: 2; line-clamp: 2;
+  }
+  .card__sku { order: 3; font-size: 13px; }
+  .badge { order: 4; justify-self: start; }
+  .card__price { order: 5; text-align: right; justify-self: end; background: none; padding: 0; font-size: 16px; }
+  .card__supplier { order: 6; text-align: right; justify-self: end; max-width: 100%; }
+
+  .card:hover { box-shadow: 0 2px 4px rgba(20, 25, 40, .08), 0 10px 28px rgba(20, 25, 40, .07); }
 }
 
 /* ---------- Десктоп: фильтры сайдбаром ---------- */
@@ -278,21 +317,4 @@ img { max-width: 100%; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-}
-
-/* ---------- Тёмная тема ---------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14161c;
-    --surface: #1d2028;
-    --text: #eef0f5;
-    --muted: #9aa0b4;
-    --line: #2c3039;
-    --accent: #5b8cff;
-    --grey-soft: #262a34;
-    --green-soft: #123524;
-    --amber-soft: #3a2e13;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .4);
-  }
-  .badge--on_order { color: #f0c266; }
 }

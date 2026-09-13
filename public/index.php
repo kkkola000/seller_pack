@@ -122,6 +122,16 @@ $isFiltered = CatalogRequest::isFiltered($filters);
       <button type="button" class="link-reset<?= $isFiltered ? '' : ' is-hidden' ?>" id="js-reset-inline">Сбросить фильтры</button>
     </div>
 
+    <!-- Шапка списка: видна только на широких экранах, колонки совпадают с карточкой -->
+    <div class="list-head" aria-hidden="true">
+      <span></span>
+      <span>Товар</span>
+      <span>Артикул</span>
+      <span>Наличие</span>
+      <span>Цена</span>
+      <span>Поставщик</span>
+    </div>
+
     <div class="grid" id="js-grid" aria-busy="false">
       <?= $result['items'] === [] ? Catalog::emptyState() : Catalog::cards($result['items']) ?>
     </div>

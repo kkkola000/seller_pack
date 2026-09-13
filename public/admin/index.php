@@ -6,6 +6,7 @@ require_once dirname(__DIR__, 2) . '/app/bootstrap.php';
 use App\Import\ColumnRef;
 use App\Import\Fetcher;
 use App\Import\ImportService;
+use App\Import\ValueParser;
 use App\Models\ImportRunRepository;
 use App\Models\ProductRepository;
 use App\Models\SourceRepository;
@@ -178,7 +179,7 @@ function handleSourceSave(): void
         $mapping[$field] = trim((string) ($mappingInput[$field] ?? ''));
     }
     $mapping['in_stock_values'] = trim((string) ($mappingInput['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES));
-    $mapping['on_order_values'] = trim((string) ($mappingInput['on_order_values'] ?? SourceRepository::DEFAULT_ON_ORDER_VALUES));
+
 
     $errors = [];
 
@@ -249,6 +250,10 @@ function handleSourceSave(): void
         'skip_rows'               => max(0, (int) ($_POST['skip_rows'] ?? 1)),
         'sheet_index'             => max(1, (int) ($_POST['sheet_index'] ?? 1)),
         'price_multiplier'        => max(0.0001, (float) str_replace(',', '.', (string) ($_POST['price_multiplier'] ?? '1'))),
+        // Приводим к тому же виду, что и валюту из файла: «руб» -> RUB, «тг» -> KZT
+        'currency_code'           => trim((string) ($_POST['currency_code'] ?? '')) === ''
+            ? ''
+            : ValueParser::currency((string) $_POST['currency_code'], ''),
         'mapping'                 => $mapping,
     ];
 

@@ -177,26 +177,37 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
       <?php endforeach; ?>
     </div>
 
+    <label class="field">
+      <span class="field__label">Значения, которые считать «в наличии»</span>
+      <input class="input" type="text" name="mapping[in_stock_values]"
+             value="<?= e($mapVal('in_stock_values', SourceRepository::DEFAULT_IN_STOCK_VALUES)) ?>">
+      <span class="field__hint">
+        Через запятую. Влияет только на фильтр «в наличии» — на витрине показывается то значение,
+        которое стоит в прайсе поставщика. Числа распознаются сами: больше 0 — в наличии.
+      </span>
+    </label>
+
     <div class="grid-2">
       <label class="field">
-        <span class="field__label">Значения «в наличии»</span>
-        <input class="input" type="text" name="mapping[in_stock_values]"
-               value="<?= e($mapVal('in_stock_values', SourceRepository::DEFAULT_IN_STOCK_VALUES)) ?>">
-        <span class="field__hint">Через запятую. Числа в колонке остатка распознаются автоматически: &gt; 0 — в наличии.</span>
+        <span class="field__label">Валюта источника</span>
+        <input class="input" type="text" name="currency_code" maxlength="16" list="currency-list"
+               value="<?= e($val('currency_code', '')) ?>" placeholder="например, KZT">
+        <datalist id="currency-list">
+          <option value="RUB"><option value="KZT"><option value="USD">
+          <option value="EUR"><option value="BYN"><option value="UAH"><option value="UZS">
+        </datalist>
+        <span class="field__hint">
+          Код (KZT, USD) или своё обозначение (тг, сум). Используется, когда валюты нет в самом файле.
+          Если оставить пустым, берётся валюта из config.php.
+        </span>
       </label>
 
       <label class="field">
-        <span class="field__label">Значения «под заказ»</span>
-        <input class="input" type="text" name="mapping[on_order_values]"
-               value="<?= e($mapVal('on_order_values', SourceRepository::DEFAULT_ON_ORDER_VALUES)) ?>">
+        <span class="field__label">Коэффициент к цене</span>
+        <input class="input" type="text" name="price_multiplier" value="<?= e($val('price_multiplier', '1')) ?>">
+        <span class="field__hint">1 — цена как в прайсе, 1.2 — наценка 20%.</span>
       </label>
     </div>
-
-    <label class="field field--narrow">
-      <span class="field__label">Коэффициент к цене</span>
-      <input class="input" type="text" name="price_multiplier" value="<?= e($val('price_multiplier', '1')) ?>">
-      <span class="field__hint">1 — цена как в прайсе, 1.2 — наценка 20%.</span>
-    </label>
   </div>
 
   <div class="form__actions">

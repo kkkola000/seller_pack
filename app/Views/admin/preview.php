@@ -79,8 +79,8 @@ use App\Models\ProductRepository;
             <td data-label="Артикул" class="mono"><?= e($product['sku']) ?></td>
             <td data-label="Цена" class="num"><?= e(format_price($product['price'], $product['currency'])) ?></td>
             <td data-label="Наличие">
-              <?= e(ProductRepository::AVAILABILITY[$product['availability']]) ?>
-              <?= $product['stock_qty'] !== null ? ' (' . (int) $product['stock_qty'] . ')' : '' ?>
+              <?= e($product['stock_text'] !== '' ? $product['stock_text'] : '—') ?>
+              <span class="muted small">(<?= e(ProductRepository::AVAILABILITY[$product['availability']]) ?>)</span>
             </td>
             <td data-label="Фото"><?= $product['image_url'] ? '<span class="pill pill--ok">есть</span>' : '<span class="muted">—</span>' ?></td>
           </tr>
@@ -102,7 +102,9 @@ use App\Models\ProductRepository;
           <td data-label="Название"><?= e($product['name']) ?></td>
           <td data-label="Артикул" class="mono"><?= e($product['sku']) ?></td>
           <td data-label="Цена" class="num"><?= e(format_price($product['price'] === null ? null : (float) $product['price'], (string) $product['currency'])) ?></td>
-          <td data-label="Наличие"><?= e(ProductRepository::AVAILABILITY[$product['availability']]) ?></td>
+          <td data-label="Наличие">
+            <?= e(($product['stock_text'] ?? '') !== '' ? $product['stock_text'] : ProductRepository::AVAILABILITY[$product['availability']]) ?>
+          </td>
           <td data-label="Обновлён"><?= e(format_datetime($product['updated_at'])) ?></td>
         </tr>
       <?php endforeach; ?>

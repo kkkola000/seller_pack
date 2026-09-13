@@ -35,6 +35,7 @@ try {
                 'price_text'   => format_price($item['price'] === null ? null : (float) $item['price'], (string) $item['currency']),
                 'currency'     => $item['currency'],
                 'stock_qty'    => $item['stock_qty'] === null ? null : (int) $item['stock_qty'],
+                'stock_text'   => $item['stock_text'],
                 'availability' => $item['availability'],
                 'image_url'    => $item['image_url'],
                 'supplier'     => $item['supplier_name'],

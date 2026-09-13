@@ -6,19 +6,15 @@ require_once dirname(__DIR__) . '/app/bootstrap.php';
 use App\Support\Auth;
 use App\Support\Csrf;
 use App\Support\Db;
+use App\Support\Migrator;
 
 $errors = [];
 $done = false;
 
-/** Создаёт таблицы из db/schema.sql. */
+/** Создаёт таблицы и применяет миграции. */
 function install_schema(): void
 {
-    $sql = (string) file_get_contents(APP_ROOT . '/db/schema.sql');
-    $sql = preg_replace('/^\s*--.*$/m', '', $sql) ?? $sql;
-
-    foreach (array_filter(array_map('trim', explode(';', $sql))) as $statement) {
-        Db::pdo()->exec($statement);
-    }
+    Migrator::migrate();
 }
 
 $connectionError = null;

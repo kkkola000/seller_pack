@@ -41,38 +41,33 @@ final class ValueParser
     }
 
     /**
-     * Остаток/наличие. Возвращает [количество|null, статус].
+     * Остаток/наличие. Значение поставщика сохраняется как есть — именно оно
+     * показывается на витрине; статус нужен только для фильтра «в наличии».
      *
-     * @return array{0:?int,1:string}
+     * @return array{qty:?int,status:string,text:string}
      */
-    public static function stock(string $raw, string $inStockValues, string $onOrderValues): array
+    public static function stock(string $raw, string $inStockValues): array
     {
-        $value = trim($raw);
-        if ($value === '') {
-            return [null, 'out_of_stock'];
+        $text = self::text($raw, 190);
+        if ($text === '') {
+            return ['qty' => null, 'status' => 'out_of_stock', 'text' => ''];
         }
 
-        $numeric = str_replace(["\xc2\xa0", ' ', ','], ['', '', '.'], $value);
+        $numeric = str_replace(["\xc2\xa0", ' ', ','], ['', '', '.'], $text);
         $numeric = preg_replace('/^[>~≥+]+/u', '', $numeric) ?? $numeric;
         if (is_numeric($numeric)) {
             $qty = (int) round((float) $numeric);
-            return [$qty, $qty > 0 ? 'in_stock' : 'out_of_stock'];
+            return ['qty' => $qty, 'status' => $qty > 0 ? 'in_stock' : 'out_of_stock', 'text' => $text];
         }
 
-        $normalized = self::normalizeText($value);
-
-        foreach (self::splitList($onOrderValues) as $needle) {
-            if ($needle !== '' && str_contains($normalized, $needle)) {
-                return [null, 'on_order'];
-            }
-        }
+        $normalized = self::normalizeText($text);
         foreach (self::splitList($inStockValues) as $needle) {
             if ($needle !== '' && str_contains($normalized, $needle)) {
-                return [null, 'in_stock'];
+                return ['qty' => null, 'status' => 'in_stock', 'text' => $text];
             }
         }
 
-        return [null, 'out_of_stock'];
+        return ['qty' => null, 'status' => 'out_of_stock', 'text' => $text];
     }
 
     /** @return list<string> */
@@ -107,16 +102,33 @@ final class ValueParser
         return mb_substr($value, 0, $maxLength, 'UTF-8');
     }
 
+    /**
+     * Валюта. Код из файла приводим к стандартному виду, но произвольное
+     * обозначение поставщика («тг», «сум», «৳») тоже сохраняем как есть —
+     * админ может задать свою валюту вручную.
+     */
     public static function currency(string $raw, string $default): string
     {
-        $value = strtoupper(trim($raw));
+        $value = trim($raw);
         if ($value === '') {
             return $default;
         }
-        $map = ['РУБ' => 'RUB', 'Р' => 'RUB', '₽' => 'RUB', 'RUR' => 'RUB', 'ТГ' => 'KZT', '$' => 'USD', '€' => 'EUR'];
-        $value = $map[$value] ?? $value;
 
-        return preg_match('/^[A-Z]{2,8}$/', $value) === 1 ? $value : $default;
+        $map = [
+            'РУБ' => 'RUB', 'Р' => 'RUB', 'Р.' => 'RUB', '₽' => 'RUB', 'RUR' => 'RUB',
+            'ТГ' => 'KZT', 'ТЕНГЕ' => 'KZT', '₸' => 'KZT',
+            'ГРН' => 'UAH', '₴' => 'UAH', 'БЕЛ.РУБ' => 'BYN',
+            '$' => 'USD', 'ДОЛЛ' => 'USD', '€' => 'EUR', 'ЕВРО' => 'EUR',
+        ];
+        $upper = mb_strtoupper($value, 'UTF-8');
+        if (isset($map[$upper])) {
+            return $map[$upper];
+        }
+        if (preg_match('/^[A-Za-z]{2,8}$/', $value) === 1) {
+            return strtoupper($value);
+        }
+
+        return mb_substr($value, 0, 8, 'UTF-8');
     }
 
     public static function imageUrl(string $raw): ?string

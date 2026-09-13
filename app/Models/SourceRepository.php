@@ -25,11 +25,10 @@ final class SourceRepository
         'price' => ['label' => 'Цена',            'required' => true],
         'stock' => ['label' => 'Остаток/наличие', 'required' => true],
         'image' => ['label' => 'Фото (URL)',      'required' => false],
-        'currency' => ['label' => 'Валюта',       'required' => false],
+        'currency' => ['label' => 'Валюта (столбец)', 'required' => false],
     ];
 
-    public const DEFAULT_IN_STOCK_VALUES = 'да,есть,в наличии,+,true,1,in stock,instock,available';
-    public const DEFAULT_ON_ORDER_VALUES = 'под заказ,подзаказ,ожидается,предзаказ,preorder,on order';
+    public const DEFAULT_IN_STOCK_VALUES = 'да,есть,в наличии,+,true,1,in stock,instock,available,много';
 
     /** @return array<string,string> Маппинг по умолчанию для YML-фида. */
     public static function defaultYmlMapping(): array

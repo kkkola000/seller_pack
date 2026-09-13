@@ -9,7 +9,6 @@ final class ProductRepository
 {
     public const AVAILABILITY = [
         'in_stock'     => 'В наличии',
-        'on_order'     => 'Под заказ',
         'out_of_stock' => 'Нет в наличии',
     ];
 
@@ -37,7 +36,7 @@ final class ProductRepository
             'name_asc'   => 'p.name ASC',
             'name_desc'  => 'p.name DESC',
             'newest'     => 'p.updated_at DESC, p.id DESC',
-            default      => "FIELD(p.availability, 'in_stock', 'on_order', 'out_of_stock'), p.name ASC",
+            default      => "FIELD(p.availability, 'in_stock', 'out_of_stock'), p.name ASC",
         };
 
         $offset = ($page - 1) * $perPage;
@@ -123,13 +122,14 @@ final class ProductRepository
         $params = [];
         foreach ($rows as $i => $row) {
             $placeholders[] = "(:source_id_$i, :sku_$i, :name_$i, :price_$i, :currency_$i, :stock_qty_$i,"
-                . " :availability_$i, :image_url_$i, :extra_$i, :run_$i)";
+                . " :stock_text_$i, :availability_$i, :image_url_$i, :extra_$i, :run_$i)";
             $params["source_id_$i"]    = $sourceId;
             $params["sku_$i"]          = $row['sku'];
             $params["name_$i"]         = $row['name'];
             $params["price_$i"]        = $row['price'];
             $params["currency_$i"]     = $row['currency'];
             $params["stock_qty_$i"]    = $row['stock_qty'];
+            $params["stock_text_$i"]   = $row['stock_text'];
             $params["availability_$i"] = $row['availability'];
             $params["image_url_$i"]    = $row['image_url'];
             $params["extra_$i"]        = $row['extra'];
@@ -137,13 +137,14 @@ final class ProductRepository
         }
 
         $sql = 'INSERT INTO products
-                    (source_id, sku, name, price, currency, stock_qty, availability, image_url, extra, import_run_id)
+                    (source_id, sku, name, price, currency, stock_qty, stock_text, availability, image_url, extra, import_run_id)
                 VALUES ' . implode(', ', $placeholders) . '
                 ON DUPLICATE KEY UPDATE
                     name          = VALUES(name),
                     price         = VALUES(price),
                     currency      = VALUES(currency),
                     stock_qty     = VALUES(stock_qty),
+                    stock_text    = VALUES(stock_text),
                     availability  = VALUES(availability),
                     image_url     = VALUES(image_url),
                     extra         = VALUES(extra),
