@@ -14,7 +14,7 @@ use RuntimeException;
  * строки (общая таблица строк SST), числа, RK-числа и результаты формул.
  * Оформление, картинки и формулы как таковые не нужны и пропускаются.
  */
-final class XlsReader implements RowReader
+final class XlsReader implements RowReader, SkipsHidden
 {
     /* Служебные записи */
     private const BOF        = 0x0809;
@@ -35,6 +35,10 @@ final class XlsReader implements RowReader
     private const STRING   = 0x0207;
     private const BOOLERR  = 0x0205;
 
+    /* Служебные записи со сведениями о скрытых строках и столбцах */
+    private const ROW     = 0x0208;
+    private const COLINFO = 0x007D;
+
     /** Насколько далеко назад допускаем «неупорядоченные» строки перед выдачей. */
     private const ROW_WINDOW = 32;
 
@@ -46,10 +50,26 @@ final class XlsReader implements RowReader
     private int $version = 0x0600;
     private string $encoding = 'CP1251';
 
+    /** @var array<int,true> */
+    private array $hiddenColumns = [];
+    /** @var array<int,true> */
+    private array $hiddenRowIndexes = [];
+
     public function __construct(
         private readonly string $path,
         private readonly int $sheetIndex = 1,
+        private readonly bool $skipHidden = true,
     ) {
+    }
+
+    public function hiddenRowsSkipped(): int
+    {
+        return count($this->hiddenRowIndexes);
+    }
+
+    public function hiddenColumnsSkipped(): int
+    {
+        return count($this->hiddenColumns);
     }
 
     public function rows(): Generator
@@ -263,6 +283,8 @@ final class XlsReader implements RowReader
         $length = strlen($this->stream);
         $rows = [];
         $maxRow = -1;
+        $this->hiddenColumns = [];
+        $this->hiddenRowIndexes = [];
         $emitted = -1;
         $pendingFormula = null; // [row, col] — ждём запись STRING с результатом
 
@@ -272,6 +294,24 @@ final class XlsReader implements RowReader
 
             if ($type === self::EOF) {
                 break;
+            }
+
+            // Сведения о скрытых строках и столбцах идут до самих ячеек
+            if ($type === self::ROW && $this->skipHidden) {
+                if (($this->uint16($data, 12) & 0x20) === 0x20) {
+                    $this->hiddenRowIndexes[$this->uint16($data, 0)] = true;
+                }
+                continue;
+            }
+            if ($type === self::COLINFO && $this->skipHidden) {
+                if (($this->uint16($data, 8) & 0x0001) === 0x0001) {
+                    $first = $this->uint16($data, 0);
+                    $last = max($first, $this->uint16($data, 2));
+                    for ($column = $first; $column <= $last; $column++) {
+                        $this->hiddenColumns[$column] = true;
+                    }
+                }
+                continue;
             }
 
             $row = null;
@@ -363,12 +403,19 @@ final class XlsReader implements RowReader
             // Отдаём строки, которые уже точно дописаны
             while ($emitted + 1 <= $maxRow - self::ROW_WINDOW) {
                 $emitted++;
+                if (isset($this->hiddenRowIndexes[$emitted])) {
+                    unset($rows[$emitted]);
+                    continue;
+                }
                 yield $this->buildRow($rows[$emitted] ?? []);
                 unset($rows[$emitted]);
             }
         }
 
         for ($index = $emitted + 1; $index <= $maxRow; $index++) {
+            if (isset($this->hiddenRowIndexes[$index])) {
+                continue;
+            }
             yield $this->buildRow($rows[$index] ?? []);
         }
     }
@@ -385,7 +432,8 @@ final class XlsReader implements RowReader
         ksort($cells);
         $row = [];
         for ($i = 0; $i <= array_key_last($cells); $i++) {
-            $row[$i] = $cells[$i] ?? '';
+            // Скрытые столбцы очищаем, позиции сохраняем — маппинг по буквам не съедет
+            $row[$i] = isset($this->hiddenColumns[$i]) ? '' : ($cells[$i] ?? '');
         }
 
         return $row;

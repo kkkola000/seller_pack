@@ -293,6 +293,7 @@ function handleSourceSave(): void
         'csv_encoding'            => (string) ($_POST['csv_encoding'] ?? 'auto'),
         'skip_rows'               => max(0, (int) ($_POST['skip_rows'] ?? 1)),
         'sheet_index'             => max(1, (int) ($_POST['sheet_index'] ?? 1)),
+        'skip_hidden'             => isset($_POST['skip_hidden']) ? 1 : 0,
         // Приводим к тому же виду, что и валюту из файла: «руб» -> RUB, «тг» -> KZT
         'currency_code'           => trim((string) ($_POST['currency_code'] ?? '')) === ''
             ? ''

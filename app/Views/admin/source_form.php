@@ -156,6 +156,18 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
         </select>
       </label>
     </div>
+
+    <div class="js-type-field" data-type="excel">
+      <label class="check-inline">
+        <input type="checkbox" name="skip_hidden" <?= $checked('skip_hidden', true) ? 'checked' : '' ?>>
+        <span>Не импортировать скрытые строки и столбцы</span>
+      </label>
+      <span class="field__hint">
+        Поставщики часто прячут в книге неактуальные позиции и старые колонки.
+        С галочкой такие строки пропускаются, а скрытые столбцы читаются как пустые —
+        буквы столбцов в маппинге при этом не сдвигаются.
+      </span>
+    </div>
   </div>
 
   <div class="card">

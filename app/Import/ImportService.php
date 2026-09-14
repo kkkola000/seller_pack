@@ -19,6 +19,9 @@ use Throwable;
 final class ImportService
 {
     private const BATCH_SIZE = 300;
+
+    /** Читалка последнего импорта — чтобы узнать, сколько скрытого пропущено. */
+    private static ?Readers\RowReader $lastReader = null;
     private const MAX_ERROR_SAMPLES = 5;
 
     /**
@@ -43,6 +46,7 @@ final class ImportService
             $tempFile = $isTemp ? $path : null;
 
             $batch = [];
+            self::$lastReader = null;
             $iterator = $source['type'] === 'yml'
                 ? self::iterateYml($source, $path, $errors)
                 : self::iterateTabular($source, $path, $errors);
@@ -83,6 +87,10 @@ final class ImportService
                 $stats['rows_deleted'],
                 $count
             );
+            $hidden = self::hiddenSummary();
+            if ($hidden !== '') {
+                $message .= ' ' . $hidden;
+            }
             if ($errors !== []) {
                 $message .= ' Примеры пропусков: ' . implode('; ', $errors);
             }
@@ -192,6 +200,7 @@ final class ImportService
     private static function iterateTabular(array $source, string $path, array &$errors): \Generator
     {
         $reader = self::tabularReader($source, $path);
+        self::$lastReader = $reader;
         $skip = (int) $source['skip_rows'];
         $line = 0;
 
@@ -226,7 +235,11 @@ final class ImportService
     private static function tabularReader(array $source, string $path): RowReader
     {
         return $source['type'] === 'excel'
-            ? ExcelReader::open($path, max(1, (int) $source['sheet_index']))
+            ? ExcelReader::open(
+                $path,
+                max(1, (int) $source['sheet_index']),
+                (int) ($source['skip_hidden'] ?? 1) === 1
+            )
             : new CsvReader($path, (string) $source['csv_delimiter'], (string) $source['csv_encoding']);
     }
 
@@ -384,6 +397,30 @@ final class ImportService
             'image_url'    => ValueParser::imageUrl($rawImage),
             'extra'        => null,
         ];
+    }
+
+    /** Текст о пропущенных скрытых строках и столбцах — для журнала импортов. */
+    private static function hiddenSummary(): string
+    {
+        if (!self::$lastReader instanceof Readers\SkipsHidden) {
+            return '';
+        }
+
+        $rows = self::$lastReader->hiddenRowsSkipped();
+        $columns = self::$lastReader->hiddenColumnsSkipped();
+        if ($rows === 0 && $columns === 0) {
+            return '';
+        }
+
+        $parts = [];
+        if ($rows > 0) {
+            $parts[] = 'строк: ' . $rows;
+        }
+        if ($columns > 0) {
+            $parts[] = 'столбцов: ' . $columns;
+        }
+
+        return 'Пропущено скрытого в книге — ' . implode(', ', $parts) . '.';
     }
 
     /** @param list<string> $errors */

@@ -14,11 +14,11 @@ final class ExcelReader
     private const ZIP_SIGNATURE = "PK\x03\x04";   // .xlsx — это zip-архив
     private const CFB_SIGNATURE = "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"; // .xls — контейнер OLE2
 
-    public static function open(string $path, int $sheetIndex = 1): RowReader
+    public static function open(string $path, int $sheetIndex = 1, bool $skipHidden = true): RowReader
     {
         return match (self::format($path)) {
-            'xlsx'  => new XlsxReader($path, $sheetIndex),
-            'xls'   => new XlsReader($path, $sheetIndex),
+            'xlsx'  => new XlsxReader($path, $sheetIndex, $skipHidden),
+            'xls'   => new XlsReader($path, $sheetIndex, $skipHidden),
             default => throw new RuntimeException(
                 'Файл не похож ни на .xlsx, ни на .xls. Если это CSV — выберите тип источника «CSV».'
             ),

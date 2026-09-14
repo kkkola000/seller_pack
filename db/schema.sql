@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS sources (
   csv_encoding           VARCHAR(32)  NOT NULL DEFAULT 'auto',
   skip_rows              INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Сколько строк заголовка пропустить',
   sheet_index            INT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Номер листа Excel, 1 = первый',
+  skip_hidden            TINYINT(1)   NOT NULL DEFAULT 1 COMMENT 'Не импортировать скрытые строки и столбцы',
   currency_code          VARCHAR(16)  NOT NULL DEFAULT '' COMMENT 'Валюта источника, если её нет в файле',
   mapping                TEXT         NOT NULL COMMENT 'JSON: соответствие полей столбцам/тегам',
   last_run_at            DATETIME     NULL,

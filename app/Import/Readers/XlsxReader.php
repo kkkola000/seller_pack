@@ -12,17 +12,31 @@ use ZipArchive;
  * Потоковое чтение .xlsx средствами ZipArchive + XMLReader,
  * без внешних библиотек (важно для хостинга без Composer).
  */
-final class XlsxReader implements RowReader
+final class XlsxReader implements RowReader, SkipsHidden
 {
     private const MAX_GAP_FILL = 5000;
 
     /** @var list<string> */
     private array $tempFiles = [];
+    /** @var array<int,true> индексы скрытых столбцов (с нуля) */
+    private array $hiddenColumns = [];
+    private int $hiddenRows = 0;
 
     public function __construct(
         private readonly string $path,
         private readonly int $sheetIndex = 1,
+        private readonly bool $skipHidden = true,
     ) {
+    }
+
+    public function hiddenRowsSkipped(): int
+    {
+        return $this->hiddenRows;
+    }
+
+    public function hiddenColumnsSkipped(): int
+    {
+        return count($this->hiddenColumns);
     }
 
     public function rows(): Generator
@@ -41,6 +55,9 @@ final class XlsxReader implements RowReader
             $sharedStr   = $this->readSharedStrings($zip);
             $sheetFile   = $this->extract($zip, $sheetPath);
 
+            $this->hiddenRows = 0;
+            $this->hiddenColumns = $this->skipHidden ? $this->readHiddenColumns($sheetFile) : [];
+
             $reader = new XMLReader();
             if (!$reader->open('file://' . $sheetFile)) {
                 throw new RuntimeException('Не удалось прочитать лист книги Excel.');
@@ -50,6 +67,14 @@ final class XlsxReader implements RowReader
                 $expectedRow = 1;
                 while ($reader->read()) {
                     if ($reader->nodeType !== XMLReader::ELEMENT || $reader->name !== 'row') {
+                        continue;
+                    }
+
+                    if ($this->skipHidden && $this->isHidden($reader->getAttribute('hidden'))) {
+                        // Скрытая строка: поставщик спрятал её как неактуальную
+                        $rowNumber = (int) ($reader->getAttribute('r') ?: $expectedRow);
+                        $expectedRow = $rowNumber + 1;
+                        $this->hiddenRows++;
                         continue;
                     }
 
@@ -145,7 +170,9 @@ final class XlsxReader implements RowReader
 
         $row = [];
         for ($i = 0; $i <= $maxIndex; $i++) {
-            $row[$i] = $cells[$i] ?? '';
+            // Скрытые столбцы очищаем, но позиции сохраняем: буквы столбцов
+            // в настройках маппинга не должны съезжать
+            $row[$i] = isset($this->hiddenColumns[$i]) ? '' : ($cells[$i] ?? '');
         }
 
         return $row;
@@ -192,6 +219,45 @@ final class XlsxReader implements RowReader
         }
 
         return $index - 1;
+    }
+
+    /**
+     * Скрытые столбцы описаны в блоке <cols> перед данными листа.
+     *
+     * @return array<int,true>
+     */
+    private function readHiddenColumns(string $sheetFile): array
+    {
+        $reader = new XMLReader();
+        if (!$reader->open('file://' . $sheetFile)) {
+            return [];
+        }
+
+        $hidden = [];
+        while ($reader->read()) {
+            if ($reader->nodeType === XMLReader::ELEMENT && $reader->name === 'sheetData') {
+                break; // блок <cols> идёт раньше данных
+            }
+            if ($reader->nodeType !== XMLReader::ELEMENT || $reader->name !== 'col') {
+                continue;
+            }
+            if (!$this->isHidden($reader->getAttribute('hidden'))) {
+                continue;
+            }
+            $min = max(1, (int) $reader->getAttribute('min'));
+            $max = max($min, (int) $reader->getAttribute('max'));
+            for ($column = $min; $column <= $max; $column++) {
+                $hidden[$column - 1] = true;
+            }
+        }
+        $reader->close();
+
+        return $hidden;
+    }
+
+    private function isHidden(?string $attribute): bool
+    {
+        return $attribute === '1' || $attribute === 'true';
     }
 
     /** @return list<string> */
