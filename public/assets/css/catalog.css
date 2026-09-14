@@ -185,6 +185,7 @@ img { max-width: 100%; }
 }
 .badge--in_stock { background: var(--green); color: #fff; }
 .badge--out_of_stock { background: var(--grey-soft); color: var(--muted); }
+.badge--none { background: none; padding: 0; }
 
 .card__title {
   margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere;

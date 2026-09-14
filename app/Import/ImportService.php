@@ -334,22 +334,33 @@ final class ImportService
         $name = ValueParser::text($rawName, 500);
         $sku  = ValueParser::text($rawSku, 190);
 
-        if ($name === '' || $sku === '') {
-            self::addError($errors, $line, $name === '' ? 'пустое название' : 'пустой артикул');
+        // Поля маппинга необязательные: название и артикул подстраховывают друг друга,
+        // и только когда пусты оба — показывать в каталоге нечего.
+        if ($name === '' && $sku === '') {
+            self::addError($errors, $line, 'нет ни названия, ни артикула');
             return null;
         }
-
-        $price = ValueParser::price($rawPrice, (float) ($source['price_multiplier'] ?? 1));
-        if ($price === null) {
-            self::addError($errors, $line, 'не распознана цена «' . mb_substr($rawPrice, 0, 30) . '»');
-            return null;
+        if ($name === '') {
+            $name = $sku;
+        }
+        if ($sku === '') {
+            // Артикул не задан — делаем устойчивый ключ по названию,
+            // чтобы при повторных импортах товар обновлялся, а не дублировался
+            $sku = 'auto-' . substr(md5(mb_strtolower($name, 'UTF-8')), 0, 16);
         }
 
-        $stock = ValueParser::stock(
-            $rawStock,
-            (string) ($mapping['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES),
-            (string) ($mapping['out_of_stock_values'] ?? SourceRepository::DEFAULT_OUT_OF_STOCK_VALUES)
-        );
+        // Цена может отсутствовать: на витрине вместо неё будет прочерк
+        $price = ValueParser::price($rawPrice);
+
+        $stockMapped = trim((string) ($mapping['stock'] ?? '')) !== '';
+        $stock = $stockMapped
+            ? ValueParser::stock(
+                $rawStock,
+                SourceRepository::DEFAULT_IN_STOCK_VALUES,
+                SourceRepository::DEFAULT_OUT_OF_STOCK_VALUES
+            )
+            // Колонка остатка не указана — наличие не показываем и товар не прячем в конец списка
+            : ['qty' => null, 'status' => 'in_stock', 'text' => ''];
 
         // Валюта: сначала из файла, затем заданная для источника, затем общая по умолчанию.
         // Обозначение источника прогоняем через тот же разбор, что и значение из файла,

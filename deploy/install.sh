@@ -183,7 +183,25 @@ case "$ROOT" in
 esac
 printf '\n       ln -s %s/public %s/httpdocs/%s\n\n' "$ROOT" "$SUBSCRIPTION" "$(basename "$ROOT")"
 
-bold "После настройки корня документов откройте https://ВАШ_ДОМЕН/admin/"
+bold "Адреса сервиса"
+FOLDER="$(basename "$ROOT")"
+info "Если корень документов указывает на $FOLDER/public:"
+printf '       витрина   https://ВАШ_ДОМЕН/\n'
+printf '       админка   https://ВАШ_ДОМЕН/admin/index.php\n'
+printf '       установка https://ВАШ_ДОМЕН/install.php\n'
+if [ -n "$CRON_TOKEN" ]; then
+    printf '       cron      https://ВАШ_ДОМЕН/api/cron.php?token=%s\n' "$CRON_TOKEN"
+fi
+echo
+info "Если корень документов оставили прежним (проект открывается как подпапка):"
+printf '       витрина   https://ВАШ_ДОМЕН/%s/public/index.php\n' "$FOLDER"
+printf '       админка   https://ВАШ_ДОМЕН/%s/public/admin/index.php\n' "$FOLDER"
+printf '       установка https://ВАШ_ДОМЕН/%s/public/install.php\n' "$FOLDER"
+if [ -n "$CRON_TOKEN" ]; then
+    printf '       cron      https://ВАШ_ДОМЕН/%s/public/api/cron.php?token=%s\n' "$FOLDER" "$CRON_TOKEN"
+fi
+echo
+info "Короткий адрес https://ВАШ_ДОМЕН/$FOLDER/ тоже работает: он сам ведёт на витрину."
 echo
 warn "Веб-установщик public/install.php больше не нужен (он сам блокируется, когда администратор создан)."
 warn "Чтобы убрать его совсем: rm $ROOT/public/install.php"

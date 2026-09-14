@@ -162,18 +162,18 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
     <h2 class="card__title">Маппинг полей</h2>
     <p class="card__hint js-type-block" data-type="excel csv">
       Укажите, из какого столбца брать каждое поле: буква (<b>A</b>, <b>B</b>, <b>AA</b>) или номер (<b>1</b>, <b>2</b>).
+      Заполнять все поля не обязательно — оставьте пустым то, чего нет в прайсе.
+      Наличие показывается на витрине дословно, как написано у поставщика.
     </p>
     <p class="card__hint js-type-block" data-type="yml">
       Укажите названия тегов внутри <code>&lt;offer&gt;</code>. Для атрибутов используйте префикс <code>@</code>
-      (например, <code>@available</code> или <code>@id</code>).
+      (например, <code>@available</code> или <code>@id</code>). Заполнять все поля не обязательно.
     </p>
 
     <div class="grid-3">
       <?php foreach (SourceRepository::FIELDS as $field => $meta): ?>
         <label class="field">
-          <span class="field__label">
-            <?= e($meta['label']) ?><?= $meta['required'] ? ' <b class="req">*</b>' : '' ?>
-          </span>
+          <span class="field__label"><?= e($meta['label']) ?></span>
           <input class="input js-map-input"
                  type="text"
                  name="mapping[<?= e($field) ?>]"
@@ -185,29 +185,7 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
       <?php endforeach; ?>
     </div>
 
-    <p class="card__hint">
-      На витрине наличие показывается дословно, как в прайсе: «Есть в наличии», «Более 5», «3 шт».
-      Списки ниже нужны только для фильтра «в наличии» и проверяются в таком порядке:
-      сначала «нет в наличии», потом числа в значении, потом «в наличии».
-    </p>
-
-    <div class="grid-2">
-      <label class="field">
-        <span class="field__label">Считать «нет в наличии» (проверяется первым)</span>
-        <input class="input" type="text" name="mapping[out_of_stock_values]"
-               value="<?= e($mapVal('out_of_stock_values', SourceRepository::DEFAULT_OUT_OF_STOCK_VALUES)) ?>">
-        <span class="field__hint">Через запятую. Достаточно части слова: «распродан» поймает и «распродано».</span>
-      </label>
-
-      <label class="field">
-        <span class="field__label">Считать «в наличии»</span>
-        <input class="input" type="text" name="mapping[in_stock_values]"
-               value="<?= e($mapVal('in_stock_values', SourceRepository::DEFAULT_IN_STOCK_VALUES)) ?>">
-        <span class="field__hint">Значения с числом больше нуля («Более 5», «10 шт») попадают сюда автоматически.</span>
-      </label>
-    </div>
-
-    <div class="grid-2">
+    <div class="grid-3">
       <label class="field">
         <span class="field__label">Валюта источника</span>
         <input class="input" type="text" name="currency_code" maxlength="16" list="currency-list"
@@ -221,13 +199,8 @@ $ymlDefaults = SourceRepository::defaultYmlMapping();
           Если оставить пустым, берётся валюта из config.php.
         </span>
       </label>
-
-      <label class="field">
-        <span class="field__label">Коэффициент к цене</span>
-        <input class="input" type="text" name="price_multiplier" value="<?= e($val('price_multiplier', '1')) ?>">
-        <span class="field__hint">1 — цена как в прайсе, 1.2 — наценка 20%.</span>
-      </label>
     </div>
+
   </div>
 
   <div class="form__actions">

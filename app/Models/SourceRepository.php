@@ -18,14 +18,18 @@ final class SourceRepository
         'url'    => 'Ссылка (скачивание по расписанию)',
     ];
 
-    /** Поля маппинга и их обязательность. */
+    /**
+     * Поля маппинга. Все необязательные: заполняется только то, что есть
+     * в прайсе. Если не задано ни название, ни артикул, строка пропускается —
+     * показывать в каталоге будет нечего.
+     */
     public const FIELDS = [
-        'name'  => ['label' => 'Название товара', 'required' => true],
-        'sku'   => ['label' => 'Артикул / SKU',   'required' => true],
-        'price' => ['label' => 'Цена',            'required' => true],
-        'stock' => ['label' => 'Остаток/наличие', 'required' => true],
-        'image' => ['label' => 'Фото (URL)',      'required' => false],
-        'currency' => ['label' => 'Валюта (столбец)', 'required' => false],
+        'name'  => ['label' => 'Название товара'],
+        'sku'   => ['label' => 'Артикул / SKU'],
+        'price' => ['label' => 'Цена'],
+        'stock' => ['label' => 'Остаток/наличие'],
+        'image' => ['label' => 'Фото (URL)'],
+        'currency' => ['label' => 'Валюта (столбец)'],
     ];
 
     public const DEFAULT_IN_STOCK_VALUES = 'да,есть,в наличии,в наличие,+,true,in stock,instock,available,много,мало,ограничен';

@@ -88,18 +88,6 @@ $isFiltered = CatalogRequest::isFiltered($filters);
         </section>
 
         <section class="filter-group">
-          <h3 class="filter-group__title">Наличие</h3>
-          <?php foreach (ProductRepository::AVAILABILITY as $key => $label): ?>
-            <label class="check">
-              <input type="checkbox" name="availability[]" value="<?= e($key) ?>"
-                <?= in_array($key, $filters['availability'], true) ? 'checked' : '' ?>>
-              <span class="check__box" aria-hidden="true"></span>
-              <span class="check__label"><?= e($label) ?></span>
-            </label>
-          <?php endforeach; ?>
-        </section>
-
-        <section class="filter-group">
           <h3 class="filter-group__title">Сортировка</h3>
           <select name="sort" id="js-sort" class="select">
             <?php foreach (CatalogRequest::SORTS as $key => $label): ?>
@@ -148,7 +136,7 @@ $isFiltered = CatalogRequest::isFiltered($filters);
 
 <footer class="footer">
   <span>Товаров в каталоге: <?= e(number_format(ProductRepository::totalCount(), 0, ',', ' ')) ?></span>
-  <a href="admin/">Админ-панель</a>
+  <a href="admin/index.php">Админ-панель</a>
 </footer>
 
 <script>

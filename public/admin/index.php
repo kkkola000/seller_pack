@@ -229,8 +229,6 @@ function handleSourceSave(): void
     foreach (array_keys(SourceRepository::FIELDS) as $field) {
         $mapping[$field] = trim((string) ($mappingInput[$field] ?? ''));
     }
-    $mapping['in_stock_values'] = trim((string) ($mappingInput['in_stock_values'] ?? SourceRepository::DEFAULT_IN_STOCK_VALUES));
-    $mapping['out_of_stock_values'] = trim((string) ($mappingInput['out_of_stock_values'] ?? SourceRepository::DEFAULT_OUT_OF_STOCK_VALUES));
 
 
     $errors = [];
@@ -246,12 +244,6 @@ function handleSourceSave(): void
     }
     if ($fetchMethod === 'url' && !preg_match('~^https?://~i', $sourceUrl)) {
         $errors[] = 'Укажите корректную ссылку на файл (http:// или https://).';
-    }
-
-    foreach (SourceRepository::FIELDS as $field => $meta) {
-        if ($meta['required'] && $mapping[$field] === '') {
-            $errors[] = 'Заполните поле маппинга «' . $meta['label'] . '».';
-        }
     }
 
     if (in_array($type, ['excel', 'csv'], true)) {
@@ -301,7 +293,6 @@ function handleSourceSave(): void
         'csv_encoding'            => (string) ($_POST['csv_encoding'] ?? 'auto'),
         'skip_rows'               => max(0, (int) ($_POST['skip_rows'] ?? 1)),
         'sheet_index'             => max(1, (int) ($_POST['sheet_index'] ?? 1)),
-        'price_multiplier'        => max(0.0001, (float) str_replace(',', '.', (string) ($_POST['price_multiplier'] ?? '1'))),
         // Приводим к тому же виду, что и валюту из файла: «руб» -> RUB, «тг» -> KZT
         'currency_code'           => trim((string) ($_POST['currency_code'] ?? '')) === ''
             ? ''

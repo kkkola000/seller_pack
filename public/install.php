@@ -81,11 +81,11 @@ if ($connectionError === null && $_SERVER['REQUEST_METHOD'] === 'POST' && !$inst
     </div>
   <?php elseif ($installed): ?>
     <div class="alert alert--success">Сервис уже установлен.</div>
-    <p><a class="btn btn--primary" href="admin/">Перейти в админ-панель</a></p>
+    <p><a class="btn btn--primary" href="admin/index.php">Перейти в админ-панель</a></p>
     <p class="muted small">Для безопасности удалите файл <code>public/install.php</code>.</p>
   <?php elseif ($done): ?>
     <div class="alert alert--success">Готово! Таблицы созданы, администратор добавлен.</div>
-    <p><a class="btn btn--primary" href="admin/">Войти в админ-панель</a></p>
+    <p><a class="btn btn--primary" href="admin/index.php">Войти в админ-панель</a></p>
     <p class="muted small">Обязательно удалите файл <code>public/install.php</code>.</p>
   <?php else: ?>
     <?php foreach ($errors as $error): ?>
