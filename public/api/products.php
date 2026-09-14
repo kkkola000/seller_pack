@@ -32,7 +32,11 @@ try {
                 'sku'          => $item['sku'],
                 'name'         => $item['name'],
                 'price'        => $item['price'] === null ? null : (float) $item['price'],
-                'price_text'   => format_price($item['price'] === null ? null : (float) $item['price'], (string) $item['currency']),
+                'price_text'   => price_label(
+                    (string) ($item['price_text'] ?? ''),
+                    $item['price'] === null ? null : (float) $item['price'],
+                    (string) $item['currency']
+                ),
                 'currency'     => $item['currency'],
                 'stock_qty'    => $item['stock_qty'] === null ? null : (int) $item['stock_qty'],
                 'stock_text'   => $item['stock_text'],

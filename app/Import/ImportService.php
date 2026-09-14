@@ -349,7 +349,9 @@ final class ImportService
             $sku = 'auto-' . substr(md5(mb_strtolower($name, 'UTF-8')), 0, 16);
         }
 
-        // Цена может отсутствовать: на витрине вместо неё будет прочерк
+        // Цену показываем так же, как остаток — ровно как записано в прайсе.
+        // Разобранное число нужно только для сортировки по цене.
+        $priceText = ValueParser::text($rawPrice, 190);
         $price = ValueParser::price($rawPrice);
 
         $stockMapped = trim((string) ($mapping['stock'] ?? '')) !== '';
@@ -374,6 +376,7 @@ final class ImportService
             'sku'          => $sku,
             'name'         => $name,
             'price'        => $price,
+            'price_text'   => $priceText,
             'currency'     => ValueParser::currency($rawCurrency, $fallbackCurrency),
             'stock_qty'    => $stock['qty'],
             'stock_text'   => $stock['text'],

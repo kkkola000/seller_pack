@@ -77,7 +77,9 @@ use App\Models\ProductRepository;
           <tr>
             <td data-label="Название"><?= e($product['name']) ?></td>
             <td data-label="Артикул" class="mono"><?= e($product['sku']) ?></td>
-            <td data-label="Цена" class="num"><?= e(format_price($product['price'], $product['currency'])) ?></td>
+            <td data-label="Цена" class="num">
+              <?= e(price_label((string) ($product['price_text'] ?? ''), $product['price'], $product['currency'])) ?>
+            </td>
             <td data-label="Наличие">
               <?= e($product['stock_text'] !== '' ? $product['stock_text'] : '—') ?>
               <span class="muted small">(<?= e(ProductRepository::AVAILABILITY[$product['availability']]) ?>)</span>
@@ -101,7 +103,13 @@ use App\Models\ProductRepository;
         <tr>
           <td data-label="Название"><?= e($product['name']) ?></td>
           <td data-label="Артикул" class="mono"><?= e($product['sku']) ?></td>
-          <td data-label="Цена" class="num"><?= e(format_price($product['price'] === null ? null : (float) $product['price'], (string) $product['currency'])) ?></td>
+          <td data-label="Цена" class="num">
+            <?= e(price_label(
+                (string) ($product['price_text'] ?? ''),
+                $product['price'] === null ? null : (float) $product['price'],
+                (string) $product['currency']
+            )) ?>
+          </td>
           <td data-label="Наличие">
             <?= e(($product['stock_text'] ?? '') !== '' ? $product['stock_text'] : ProductRepository::AVAILABILITY[$product['availability']]) ?>
           </td>

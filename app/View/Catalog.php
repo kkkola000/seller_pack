@@ -36,7 +36,8 @@ final class Catalog
         $html .= '<h3 class="card__title">' . e($product['name']) . '</h3>';
         $html .= '<div class="card__sku" title="Артикул"><span class="card__sku-icon">#</span>' . e($product['sku']) . '</div>';
         $html .= '<div class="card__footer">';
-        $html .= '<span class="card__price">' . e(format_price(
+        $html .= '<span class="card__price">' . e(price_label(
+            (string) ($product['price_text'] ?? ''),
             $product['price'] === null ? null : (float) $product['price'],
             (string) $product['currency']
         )) . '</span>';

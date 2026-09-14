@@ -40,11 +40,33 @@ function format_price(?float $price, string $currency = 'RUB'): string
     if ($price === null) {
         return '—';
     }
-    $symbols = ['RUB' => '₽', 'RUR' => '₽', 'USD' => '$', 'EUR' => '€', 'KZT' => '₸', 'BYN' => 'Br', 'UAH' => '₴'];
-    $symbol = $symbols[strtoupper($currency)] ?? $currency;
     $decimals = fmod($price, 1.0) === 0.0 ? 0 : 2;
 
-    return number_format($price, $decimals, ',', ' ') . ' ' . $symbol;
+    return number_format($price, $decimals, ',', ' ') . ' ' . currency_symbol($currency);
+}
+
+/**
+ * Цена для витрины: показываем запись поставщика как есть.
+ * Обозначение валюты дописываем, только если в самой записи его нет.
+ */
+function price_label(string $raw, ?float $price, string $currency): string
+{
+    $text = trim($raw);
+    if ($text === '') {
+        return format_price($price, $currency);
+    }
+
+    // Есть ли в записи буквы или знак валюты — значит валюта уже указана
+    $hasCurrency = preg_match('/[\p{L}$€£₽₸₴¥]/u', $text) === 1;
+
+    return $hasCurrency ? $text : $text . ' ' . currency_symbol($currency);
+}
+
+function currency_symbol(string $currency): string
+{
+    $symbols = ['RUB' => '₽', 'RUR' => '₽', 'USD' => '$', 'EUR' => '€', 'KZT' => '₸', 'BYN' => 'Br', 'UAH' => '₴'];
+
+    return $symbols[strtoupper($currency)] ?? $currency;
 }
 
 function format_datetime(?string $value): string
