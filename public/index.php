@@ -146,6 +146,7 @@ $isFiltered = CatalogRequest::isFiltered($filters);
       'hasMore' => $result['has_more'],
       'perPage' => $result['per_page'],
       'api'     => 'api/products.php',
+      'defaultSort' => CatalogRequest::DEFAULT_SORT,
   ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
 <script src="assets/js/catalog.js?v=1" defer></script>

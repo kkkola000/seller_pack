@@ -10,10 +10,12 @@ use App\Models\ProductRepository;
  */
 final class CatalogRequest
 {
+    /** Сортировка по умолчанию — первая в списке. */
+    public const DEFAULT_SORT = 'price_desc';
+
     public const SORTS = [
-        'default'    => 'Сначала в наличии',
-        'price_asc'  => 'Цена: по возрастанию',
         'price_desc' => 'Цена: по убыванию',
+        'price_asc'  => 'Цена: по возрастанию',
         'name_asc'   => 'Название: А-Я',
         'name_desc'  => 'Название: Я-А',
         'newest'     => 'Сначала обновлённые',
@@ -40,9 +42,9 @@ final class CatalogRequest
             array_keys(ProductRepository::AVAILABILITY)
         ));
 
-        $sort = (string) ($query['sort'] ?? 'default');
+        $sort = (string) ($query['sort'] ?? self::DEFAULT_SORT);
         if (!isset(self::SORTS[$sort])) {
-            $sort = 'default';
+            $sort = self::DEFAULT_SORT;
         }
 
         return [
@@ -61,6 +63,6 @@ final class CatalogRequest
         return $filters['q'] !== ''
             || $filters['suppliers'] !== []
             || $filters['availability'] !== []
-            || $filters['sort'] !== 'default';
+            || $filters['sort'] !== self::DEFAULT_SORT;
     }
 }

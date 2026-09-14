@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\CatalogRequest;
 use App\Support\Db;
 
 final class ProductRepository
@@ -30,13 +31,13 @@ final class ProductRepository
             $params
         );
 
-        $order = match ($filters['sort'] ?? 'default') {
-            'price_asc'  => 'p.price IS NULL, p.price ASC, p.name ASC',
-            'price_desc' => 'p.price IS NULL, p.price DESC, p.name ASC',
-            'name_asc'   => 'p.name ASC',
-            'name_desc'  => 'p.name DESC',
-            'newest'     => 'p.updated_at DESC, p.id DESC',
-            default      => "FIELD(p.availability, 'in_stock', 'out_of_stock'), p.name ASC",
+        // Товары без цены всегда в конце — сортировать их не по чему
+        $order = match ($filters['sort'] ?? CatalogRequest::DEFAULT_SORT) {
+            'price_asc' => 'p.price IS NULL, p.price ASC, p.name ASC',
+            'name_asc'  => 'p.name ASC',
+            'name_desc' => 'p.name DESC',
+            'newest'    => 'p.updated_at DESC, p.id DESC',
+            default     => 'p.price IS NULL, p.price DESC, p.name ASC',
         };
 
         $offset = ($page - 1) * $perPage;

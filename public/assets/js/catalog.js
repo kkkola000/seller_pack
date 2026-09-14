@@ -3,6 +3,7 @@
   'use strict';
 
   var state = window.CATALOG_STATE || { page: 1, pages: 1, hasMore: false, api: 'api/products.php' };
+  var defaultSort = state.defaultSort || 'price_desc';
 
   var form         = document.getElementById('js-filter-form');
   var searchInput  = document.getElementById('js-search');
@@ -41,7 +42,7 @@
     if (q) { params.set('q', q); }
     checkedValues('supplier[]').forEach(function (v) { params.append('supplier[]', v); });
     checkedValues('availability[]').forEach(function (v) { params.append('availability[]', v); });
-    if (sortSelect && sortSelect.value && sortSelect.value !== 'default') { params.set('sort', sortSelect.value); }
+    if (sortSelect && sortSelect.value && sortSelect.value !== defaultSort) { params.set('sort', sortSelect.value); }
     if (page > 1) { params.set('page', String(page)); }
     return params;
   }
@@ -50,7 +51,7 @@
     return (searchInput.value || '').trim() !== ''
       || checkedValues('supplier[]').length > 0
       || checkedValues('availability[]').length > 0
-      || (sortSelect && sortSelect.value !== 'default');
+      || (sortSelect && sortSelect.value !== defaultSort);
   }
 
   function syncUrl() {
@@ -168,7 +169,7 @@
   function resetAll() {
     searchInput.value = '';
     filtersPanel.querySelectorAll('input[type="checkbox"]').forEach(function (node) { node.checked = false; });
-    if (sortSelect) { sortSelect.value = 'default'; }
+    if (sortSelect) { sortSelect.value = defaultSort; }
     applyFilters();
   }
 
