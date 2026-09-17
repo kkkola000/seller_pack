@@ -68,7 +68,7 @@ if ($connectionError === null && $_SERVER['REQUEST_METHOD'] === 'POST' && !$inst
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Установка каталога</title>
-<link rel="stylesheet" href="assets/css/admin.css?v=1">
+<link rel="stylesheet" href="<?= e(asset('assets/css/admin.css')) ?>">
 </head>
 <body>
 <main class="a-main a-main--narrow">

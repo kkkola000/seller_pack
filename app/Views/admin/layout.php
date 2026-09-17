@@ -13,7 +13,7 @@ $messages = flash();
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle) ?> — админка</title>
-<link rel="stylesheet" href="../assets/css/admin.css?v=1">
+<link rel="stylesheet" href="<?= e(asset('assets/css/admin.css', '../')) ?>">
 </head>
 <body>
 <?php if ($showNav): ?>
@@ -58,6 +58,6 @@ $messages = flash();
   <?php require $content; ?>
 </main>
 
-<script src="../assets/js/admin.js?v=1" defer></script>
+<script src="<?= e(asset('assets/js/admin.js', '../')) ?>" defer></script>
 </body>
 </html>

@@ -29,7 +29,7 @@ set_exception_handler(static function (Throwable $exception): void {
     $detailed = Auth::check() || (bool) App\Support\Config::get('debug', false);
     echo '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
         . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<title>Ошибка</title><link rel="stylesheet" href="../assets/css/admin.css"></head><body>'
+        . '<title>Ошибка</title><link rel="stylesheet" href="' . e(asset('assets/css/admin.css', '../')) . '"></head><body>'
         . '<main class="a-main a-main--narrow"><h1 class="a-title">Что-то пошло не так</h1>'
         . '<div class="alert alert--error">'
         . ($detailed ? e($exception->getMessage()) : 'Внутренняя ошибка сервиса.')

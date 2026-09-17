@@ -392,7 +392,7 @@ img { max-width: 100%; }
   .badge { order: 4; justify-self: start; }
   .card__price { order: 5; text-align: right; justify-self: end; background: none; padding: 0; font-size: 16px; }
   .card__supplier { order: 6; text-align: right; justify-self: end; max-width: 100%; }
-  .order-btn { order: 7; justify-self: end; width: 34px; height: 34px; }
+  .order-btn { order: 7; justify-self: center; width: 34px; height: 34px; }
 
   .card:hover { box-shadow: 0 2px 4px rgba(20, 25, 40, .08), 0 10px 28px rgba(20, 25, 40, .07); }
 }
@@ -438,6 +438,21 @@ img { max-width: 100%; }
   .list-head {
     position: sticky; top: calc(var(--header-h) + 34px); z-index: 9;
     background: var(--bg); padding-top: 4px;
+  }
+}
+
+/* Если браузер не умеет display: contents, список строк собрать нельзя —
+   показываем обычные карточки, но без разъехавшейся вёрстки. */
+@supports not (display: contents) {
+  .list-head { display: none; }
+
+  @media (min-width: 900px) {
+    .card { display: flex; align-items: flex-start; }
+    .card__body { display: flex; }
+    .card__footer { display: flex; }
+    .card__thumb { width: 72px; height: 72px; }
+    .card__price { background: var(--grey-soft); padding: 6px 10px; text-align: left; }
+    .order-btn { width: 36px; height: 36px; }
   }
 }
 

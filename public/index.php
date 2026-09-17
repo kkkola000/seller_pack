@@ -36,7 +36,7 @@ $isFiltered = CatalogRequest::isFiltered($filters);
 <meta name="theme-color" content="#ffffff">
 <title><?= e($siteName) ?></title>
 <meta name="description" content="Объединённый каталог товаров поставщиков: поиск по названию и артикулу, фильтры по поставщику и наличию.">
-<link rel="stylesheet" href="assets/css/catalog.css?v=1">
+<link rel="stylesheet" href="<?= e(asset('assets/css/catalog.css')) ?>">
 </head>
 <body>
 <header class="topbar">
@@ -155,7 +155,7 @@ $isFiltered = CatalogRequest::isFiltered($filters);
       'defaultSort' => CatalogRequest::DEFAULT_SORT,
   ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="assets/js/order-store.js?v=1" defer></script>
-<script src="assets/js/catalog.js?v=1" defer></script>
+<script src="<?= e(asset('assets/js/order-store.js')) ?>" defer></script>
+<script src="<?= e(asset('assets/js/catalog.js')) ?>" defer></script>
 </body>
 </html>

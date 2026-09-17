@@ -7,6 +7,24 @@ function e(mixed $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+/**
+ * Ссылка на статический файл с версией по времени его изменения.
+ *
+ * Без этого браузер держит в кэше старый CSS (неделю по заголовкам сервера)
+ * и рисует свежую разметку прошлыми стилями — вёрстка разъезжается,
+ * причём только у того, у кого файл успел закэшироваться.
+ *
+ * @param string $path   путь внутри public, например assets/css/catalog.css
+ * @param string $prefix приставка для страниц из подпапок, например ../
+ */
+function asset(string $path, string $prefix = ''): string
+{
+    $file = APP_ROOT . '/public/' . ltrim($path, '/');
+    $version = is_file($file) ? (string) filemtime($file) : '1';
+
+    return $prefix . $path . '?v=' . $version;
+}
+
 /** Ответ в формате JSON и завершение скрипта. */
 function json_response(mixed $data, int $status = 200): never
 {

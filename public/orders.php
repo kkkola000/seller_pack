@@ -15,7 +15,7 @@ $siteName = (string) Config::get('site_name', 'Каталог товаров');
 <meta name="theme-color" content="#ffffff">
 <meta name="robots" content="noindex">
 <title>Заказы — <?= e($siteName) ?></title>
-<link rel="stylesheet" href="assets/css/catalog.css?v=1">
+<link rel="stylesheet" href="<?= e(asset('assets/css/catalog.css')) ?>">
 </head>
 <body>
 <header class="topbar">
@@ -46,7 +46,7 @@ $siteName = (string) Config::get('site_name', 'Каталог товаров');
   <a href="index.php">К каталогу</a>
 </footer>
 
-<script src="assets/js/order-store.js?v=1" defer></script>
-<script src="assets/js/orders.js?v=1" defer></script>
+<script src="<?= e(asset('assets/js/order-store.js')) ?>" defer></script>
+<script src="<?= e(asset('assets/js/orders.js')) ?>" defer></script>
 </body>
 </html>
