@@ -90,6 +90,16 @@ final class SourceRepository
         return $row === null ? null : self::hydrate($row);
     }
 
+    /**
+     * Запас по времени при проверке расписания, минут.
+     *
+     * Планировщик запускается по своим часам: при ежечасной задаче и интервале
+     * 60 минут между запусками проходит 59 минут 59 секунд, и без запаса такой
+     * источник пропускался бы через раз — импорт шёл бы раз в два часа,
+     * а при суточном интервале и ежедневной задаче — через день.
+     */
+    private const SCHEDULE_GRACE_MINUTES = 5;
+
     /** Источники, которым пора выполнить автоматический импорт. */
     public static function dueForImport(): array
     {
@@ -100,11 +110,31 @@ final class SourceRepository
                 AND fetch_method = 'url'
                 AND source_url IS NOT NULL AND source_url <> ''
                 AND (last_run_at IS NULL
-                     OR last_run_at <= DATE_SUB(NOW(), INTERVAL import_interval_minutes MINUTE))
+                     OR last_run_at <= DATE_SUB(
+                            NOW(),
+                            INTERVAL GREATEST(import_interval_minutes - " . self::SCHEDULE_GRACE_MINUTES . ", 1) MINUTE
+                        ))
               ORDER BY last_run_at IS NOT NULL, last_run_at"
         );
 
         return array_map([self::class, 'hydrate'], $rows);
+    }
+
+    /** Когда источник должен обновиться в следующий раз (для показа в админке). */
+    public static function nextRunAt(array $source): ?string
+    {
+        if ((int) $source['is_active'] !== 1 || (int) $source['auto_import'] !== 1
+            || $source['fetch_method'] !== 'url') {
+            return null;
+        }
+        if (empty($source['last_run_at'])) {
+            return 'при ближайшем запуске планировщика';
+        }
+
+        $interval = max(1, (int) $source['import_interval_minutes'] - self::SCHEDULE_GRACE_MINUTES);
+        $next = strtotime((string) $source['last_run_at']) + $interval * 60;
+
+        return $next <= time() ? 'при ближайшем запуске планировщика' : format_datetime(date('Y-m-d H:i:s', $next));
     }
 
     /** @param array<string,mixed> $data */

@@ -110,6 +110,11 @@ a { color: var(--accent); }
 .alert--success { background: #e3f7ec; color: #0a7a43; }
 .alert--error { background: #fdeaea; color: #a51c1c; }
 .alert--warning { background: #fdf3e0; color: #8a5f04; }
+.cron-hint { margin: 8px 0; display: grid; gap: 6px; }
+.cron-hint code {
+  display: block; padding: 8px 10px; border-radius: 8px; background: rgba(0,0,0,.05);
+  font-size: 12px; word-break: break-all;
+}
 .alert--action { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .alert--action .btn { white-space: nowrap; }
 

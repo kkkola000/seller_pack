@@ -14,6 +14,7 @@ use App\Support\Auth;
 use App\Support\Csrf;
 use App\Support\Db;
 use App\Support\Migrator;
+use App\Support\Scheduler;
 
 /**
  * Любая необработанная ошибка в админке должна показывать текст, а не пустую
@@ -204,10 +205,20 @@ switch ($page) {
     case 'sources':
     default:
         $sources = SourceRepository::list();
+        $autoSources = array_filter($sources, static fn (array $source): bool =>
+            (int) $source['auto_import'] === 1
+            && (int) $source['is_active'] === 1
+            && $source['fetch_method'] === 'url');
+
         render('admin/sources', [
             'sources'       => $sources,
             'totalProducts' => ProductRepository::totalCount(),
             'lastRuns'      => ImportRunRepository::recent(null, 5),
+            'scheduler'     => [
+                'ping'         => Scheduler::lastPing(),
+                'minutes'      => Scheduler::minutesSinceLastPing(),
+                'auto_sources' => count($autoSources),
+            ],
         ], 'Источники данных');
         break;
 }

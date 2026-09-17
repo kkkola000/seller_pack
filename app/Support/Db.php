@@ -31,7 +31,26 @@ final class Db
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
 
+        // База и приложение должны считать время одинаково: иначе расписание
+        // импорта и показанные в админке даты разъезжаются на часовой пояс.
+        // Если хостинг запрещает менять настройку — работаем как раньше.
+        try {
+            self::$pdo->exec("SET time_zone = '" . self::currentOffset() . "'");
+        } catch (\PDOException $exception) {
+            error_log('[db] не удалось задать часовой пояс сессии: ' . $exception->getMessage());
+        }
+
         return self::$pdo;
+    }
+
+    /** Смещение часового пояса PHP в формате «+03:00». */
+    private static function currentOffset(): string
+    {
+        $seconds = (new \DateTimeImmutable())->getOffset();
+        $sign = $seconds < 0 ? '-' : '+';
+        $seconds = abs($seconds);
+
+        return sprintf('%s%02d:%02d', $sign, intdiv($seconds, 3600), intdiv($seconds % 3600, 60));
     }
 
     /** @param array<string|int,mixed> $params */

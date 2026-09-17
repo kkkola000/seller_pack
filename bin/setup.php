@@ -151,7 +151,7 @@ if (isset($options['write-config'])) {
         'cron_token'       => env('CRON_TOKEN') !== '' ? env('CRON_TOKEN') : bin2hex(random_bytes(24)),
         'max_upload_bytes' => (int) env('MAX_UPLOAD_BYTES', '52428800'),
         'download_timeout' => (int) env('DOWNLOAD_TIMEOUT', '120'),
-        'timezone'         => env('TIMEZONE', 'Europe/Moscow'),
+        'timezone'         => env('TIMEZONE', 'Asia/Almaty'),
         'debug'            => false,
     ];
 

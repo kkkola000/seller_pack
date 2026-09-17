@@ -13,6 +13,7 @@ require_once dirname(__DIR__, 2) . '/app/bootstrap.php';
 
 use App\Import\ImportService;
 use App\Models\SourceRepository;
+use App\Support\Scheduler;
 use App\Support\Config;
 
 @set_time_limit(0);
@@ -34,11 +35,14 @@ try {
         ? SourceRepository::list(['only_active' => true])
         : SourceRepository::dueForImport();
 
+    Scheduler::ping('url', count($sources));
+
     if ($sources === []) {
         json_response(['ok' => true, 'message' => 'Нечего импортировать.', 'results' => []]);
     }
 
     $results = ImportService::runMany($sources, 'cron');
+    Scheduler::ping('url', count($sources), count($results));
     $failed = array_filter($results, static fn (array $r): bool => $r['status'] !== 'ok');
 
     json_response([

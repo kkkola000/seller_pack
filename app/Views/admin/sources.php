@@ -3,8 +3,55 @@
 /** @var int $totalProducts */
 /** @var list<array<string,mixed>> $lastRuns */
 use App\Models\SourceRepository;
+use App\Support\Config;
 use App\Support\Csrf;
+use App\Support\Scheduler;
 ?>
+<?php
+/** @var array{ping:?array,minutes:?int,auto_sources:int} $scheduler */
+$autoCount = (int) ($scheduler['auto_sources'] ?? 0);
+$minutes = $scheduler['minutes'];
+
+// Базовый адрес сервиса — чтобы показать рабочую ссылку для планировщика
+$base = rtrim(str_replace('\\', '/', dirname(dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '')))), '/');
+$scheme = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$cronUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'ВАШ_ДОМЕН') . $base . '/api/cron.php?token='
+    . rawurlencode((string) Config::get('cron_token', 'ТОКЕН'));
+$cronCommand = 'php ' . APP_ROOT . '/bin/import.php --due --quiet';
+
+if ($autoCount > 0):
+    if ($minutes === null): ?>
+      <div class="alert alert--error">
+        <b>Планировщик ни разу не обращался к сервису.</b><br>
+        Источников с автообновлением: <?= $autoCount ?>, но задача на сервере, судя по всему, не настроена —
+        сами по себе прайсы обновляться не будут. В Plesk: <i>Инструменты и настройки → Запланированные задачи</i>,
+        раз в час, один из вариантов:
+        <div class="cron-hint">
+          <div><b>Запустить команду:</b> <code><?= e($cronCommand) ?></code></div>
+          <div><b>или Получить URL:</b> <code><?= e($cronUrl) ?></code></div>
+        </div>
+        Проверить можно прямо сейчас: откройте ссылку выше в соседней вкладке — она вернёт JSON с результатом.
+        <span class="muted small">Время сервиса: <?= e(date('d.m.Y H:i')) ?> (<?= e(date_default_timezone_get()) ?>).</span>
+      </div>
+    <?php elseif ($minutes > 180): ?>
+      <div class="alert alert--warning">
+        <b>Планировщик молчит <?= e(Scheduler::humanAgo($minutes)) ?>.</b>
+        Проверьте, что задача в Plesk включена и путь в ней верный:
+        <div class="cron-hint">
+          <div><code><?= e($cronCommand) ?></code></div>
+          <div><code><?= e($cronUrl) ?></code></div>
+        </div>
+      </div>
+    <?php else: ?>
+      <div class="alert alert--success">
+        Планировщик работает: последний запуск <?= e(Scheduler::humanAgo($minutes)) ?>
+        (<?= $scheduler['ping']['via'] === 'url' ? 'по ссылке' : 'командой' ?>),
+        источников с автообновлением: <?= $autoCount ?>.
+        <span class="muted small">Время сервиса: <?= e(date('d.m.Y H:i')) ?> (<?= e(date_default_timezone_get()) ?>).</span>
+      </div>
+    <?php endif;
+endif; ?>
+
 <div class="toolbar">
   <div class="toolbar__stats">
     <span class="stat"><b><?= count($sources) ?></b> источник(ов)</span>
@@ -56,6 +103,10 @@ use App\Support\Csrf;
           <?= $source['fetch_method'] === 'url' ? 'По ссылке' : 'Загрузка файла' ?>
           <?php if ((int) $source['auto_import'] === 1 && $source['fetch_method'] === 'url'): ?>
             <div class="muted small">авто, раз в <?= (int) $source['import_interval_minutes'] ?> мин</div>
+            <?php $next = SourceRepository::nextRunAt($source); ?>
+            <?php if ($next !== null): ?>
+              <div class="muted small">следующее: <?= e($next) ?></div>
+            <?php endif; ?>
           <?php endif; ?>
         </td>
         <td data-label="Последний импорт">

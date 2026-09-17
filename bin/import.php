@@ -18,6 +18,7 @@ require_once dirname(__DIR__) . '/app/bootstrap.php';
 
 use App\Import\ImportService;
 use App\Models\SourceRepository;
+use App\Support\Scheduler;
 
 @set_time_limit(0);
 
@@ -31,6 +32,8 @@ $log = static function (string $message) use ($quiet): void {
 };
 
 try {
+    $manual = isset($options['source']) || isset($options['all']);
+
     if (isset($options['source'])) {
         $source = SourceRepository::find((int) $options['source']);
         if ($source === null) {
@@ -44,6 +47,10 @@ try {
         $sources = SourceRepository::dueForImport();
     }
 
+    if (!$manual) {
+        Scheduler::ping('cli', count($sources));
+    }
+
     if ($sources === []) {
         $log('Нечего импортировать.');
         exit(0);
@@ -52,7 +59,12 @@ try {
     $log('Источников к импорту: ' . count($sources));
     $failed = 0;
 
-    foreach (ImportService::runMany($sources, isset($options['source']) || isset($options['all']) ? 'manual' : 'cron') as $result) {
+    $results = ImportService::runMany($sources, $manual ? 'manual' : 'cron');
+    if (!$manual) {
+        Scheduler::ping('cli', count($sources), count($results));
+    }
+
+    foreach ($results as $result) {
         $log(sprintf('%s — %s. %s', $result['source_name'], $result['status'] === 'ok' ? 'OK' : 'ОШИБКА', $result['message']));
         if ($result['status'] !== 'ok') {
             $failed++;
