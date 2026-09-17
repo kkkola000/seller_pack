@@ -57,11 +57,14 @@
     list.innerHTML = groups.map(function (group) {
       var rows = group.items.map(function (item) {
         var qty = store.qtyOf(item);
-        return '<tr>'
-          + '<td class="order-row__sku">' + escapeHtml(item.sku) + '</td>'
-          + '<td class="order-row__name">' + escapeHtml(item.name) + '</td>'
-          + '<td class="order-row__stock">' + escapeHtml(item.stock) + '</td>'
-          + '<td class="order-row__qty">'
+        var stock = String(item.stock || '');
+
+        /* Название — отдельной строкой во всю ширину, под ним наличие и количество:
+           так на телефоне ничего не уезжает вбок. */
+        return '<div class="order-item">'
+          + '<div class="order-item__name">' + escapeHtml(item.name) + '</div>'
+          + '<div class="order-item__row">'
+          + (stock !== '' ? '<span class="order-item__stock">' + escapeHtml(stock) + '</span>' : '<span></span>')
           + '<div class="qty">'
           + '<button type="button" class="qty__btn js-qty-minus" data-id="' + escapeHtml(item.id) + '"'
           + (qty <= 1 ? ' disabled' : '') + ' aria-label="Уменьшить количество">−</button>'
@@ -69,12 +72,10 @@
           + ' data-id="' + escapeHtml(item.id) + '" aria-label="Количество">'
           + '<button type="button" class="qty__btn js-qty-plus" data-id="' + escapeHtml(item.id) + '"'
           + ' aria-label="Увеличить количество">+</button>'
-          + '</div></td>'
-          + '<td class="order-row__price">' + escapeHtml(item.price) + '</td>'
-          + '<td class="order-row__action">'
+          + '</div>'
           + '<button type="button" class="order-row__remove js-remove" data-id="' + escapeHtml(item.id)
           + '" title="Убрать из списка" aria-label="Убрать из списка">×</button>'
-          + '</td></tr>';
+          + '</div></div>';
       }).join('');
 
       /* Список свёрнут по умолчанию: <details> без атрибута open */
@@ -85,9 +86,7 @@
         + ' · ' + group.items.reduce(function (sum, item) { return sum + store.qtyOf(item); }, 0) + ' шт.</span>'
         + '</summary>'
         + '<div class="order-group__body">'
-        + '<div class="table-scroll"><table class="order-table">'
-        + '<thead><tr><th>Артикул</th><th>Товар</th><th>Наличие</th><th>Кол-во</th><th>Цена</th><th></th></tr></thead>'
-        + '<tbody>' + rows + '</tbody></table></div>'
+        + '<div class="order-items">' + rows + '</div>'
         + '<div class="order-group__actions">'
         + '<button type="button" class="btn btn--primary js-download">Скачать</button>'
         + '<button type="button" class="btn btn--ghost js-clear">Очистить</button>'
@@ -136,10 +135,9 @@
   }
 
   function download(group) {
-    var lines = [['Артикул', 'Товар', 'Количество', 'Наличие', 'Цена', 'Поставщик'].map(csvCell).join(';')];
+    var lines = [['Товар', 'Количество'].map(csvCell).join(';')];
     group.items.forEach(function (item) {
-      lines.push([item.sku, item.name, store.qtyOf(item), item.stock, item.price, group.supplier]
-        .map(csvCell).join(';'));
+      lines.push([item.name, store.qtyOf(item)].map(csvCell).join(';'));
     });
 
     /* BOM нужен, чтобы Excel открыл кириллицу правильно */

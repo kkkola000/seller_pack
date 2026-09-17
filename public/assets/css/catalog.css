@@ -86,9 +86,11 @@ img { max-width: 100%; }
 }
 
 @media (max-width: 400px) {
-  /* Прячем только подпись, счётчик заказа остаётся виден */
-  .orders-link > span:not(.orders-link__count) { display: none; }
-  .orders-link { padding: 8px 10px; gap: 4px; }
+  /* Прячем только подпись у ссылки на заказы; счётчик и кнопка «В каталог»
+     остаются подписанными — иначе на странице заказов виден голый значок */
+  .orders-link:not(.orders-link--back) > span:not(.orders-link__count) { display: none; }
+  .orders-link:not(.orders-link--back) { padding: 8px 10px; gap: 4px; }
+  .orders-link--back { padding: 8px 12px; }
 }
 
 @media (max-width: 359px) {
@@ -281,40 +283,37 @@ img { max-width: 100%; }
 .order-group__body { border-top: 1px solid var(--line); padding: 8px 16px 16px; }
 .order-group__actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 12px; }
 
-.table-scroll { overflow-x: auto; }
-.order-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.order-table th, .order-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
-.order-table th {
-  font-size: 11px; text-transform: uppercase; letter-spacing: .03em;
-  color: var(--muted); font-weight: 700; white-space: nowrap;
+/* Позиция заказа: название во всю ширину, под ним наличие и количество */
+.order-items { display: flex; flex-direction: column; }
+.order-item { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.order-item:last-child { border-bottom: 0; }
+.order-item__name { font-size: 15px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.order-item__row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: 8px;
 }
-.order-table tbody tr:last-child td { border-bottom: 0; }
-.order-row__sku { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; white-space: nowrap; }
-.order-row__price { white-space: nowrap; font-weight: 700; }
-.order-row__stock { color: var(--muted); white-space: nowrap; }
-.order-row__qty { width: 130px; }
-.order-row__action { width: 36px; }
+.order-item__stock { color: var(--muted); font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+.order-row__remove {
+  border: 0; background: var(--grey-soft); color: var(--muted); flex: none;
+  width: 28px; height: 28px; border-radius: 50%; font-size: 16px; line-height: 1; cursor: pointer;
+}
+.order-row__remove:hover { background: #fdeaea; color: #d33; }
 
 /* Шаг количества: − [N] + */
-.qty { display: inline-flex; align-items: center; gap: 2px; }
+.qty { display: inline-flex; align-items: center; gap: 2px; margin-left: auto; flex: none; }
 .qty__btn {
-  width: 28px; height: 28px; flex: none; border-radius: 8px;
+  width: 32px; height: 32px; flex: none; border-radius: 8px;
   border: 1px solid var(--line); background: var(--surface); color: var(--text);
-  font-size: 16px; line-height: 1; cursor: pointer;
+  font-size: 17px; line-height: 1; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .qty__btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .qty__btn:disabled { opacity: .4; cursor: default; }
 .qty__value {
-  width: 44px; height: 28px; text-align: center; font-size: 14px; font-weight: 700;
+  width: 46px; height: 32px; text-align: center; font-size: 15px; font-weight: 700;
   border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text);
 }
 .qty__value:focus { outline: none; border-color: var(--accent); }
-.order-row__remove {
-  border: 0; background: var(--grey-soft); color: var(--muted);
-  width: 26px; height: 26px; border-radius: 50%; font-size: 16px; line-height: 1; cursor: pointer;
-}
-.order-row__remove:hover { background: #fdeaea; color: #d33; }
 
 /* ---------- Прочее ---------- */
 .empty { grid-column: 1 / -1; text-align: center; padding: 48px 16px; color: var(--muted); }

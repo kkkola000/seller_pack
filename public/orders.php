@@ -21,7 +21,7 @@ $siteName = (string) Config::get('site_name', 'Каталог товаров');
 <header class="topbar">
   <div class="topbar__inner">
     <a class="topbar__logo" href="index.php"><?= e($siteName) ?></a>
-    <a class="orders-link" href="index.php">
+    <a class="orders-link orders-link--back" href="index.php">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>В каталог</span>
     </a>
