@@ -25,7 +25,22 @@ final class Catalog
                 . ' onerror="this.closest(\'.card__thumb\').classList.add(\'card__thumb--empty\');this.remove();">'
             : '';
 
-        $html = '<article class="card" data-id="' . (int) $product['id'] . '">';
+        $priceLabel = price_label(
+            (string) ($product['price_text'] ?? ''),
+            $product['price'] === null ? null : (float) $product['price'],
+            (string) $product['currency']
+        );
+
+        // Данные для заказа держим прямо в карточке: страница заказов собирает
+        // список из них, не обращаясь к серверу повторно
+        $html = '<article class="card"'
+            . ' data-id="' . (int) $product['id'] . '"'
+            . ' data-sku="' . e($product['sku']) . '"'
+            . ' data-name="' . e($product['name']) . '"'
+            . ' data-price="' . e($priceLabel) . '"'
+            . ' data-stock="' . e($stockText) . '"'
+            . ' data-supplier="' . e($product['supplier_name']) . '"'
+            . ' data-supplier-id="' . (int) $product['source_id'] . '">';
         $html .= '<div class="card__thumb' . ($image ? '' : ' card__thumb--empty') . '">' . $thumb . '</div>';
         $html .= '<div class="card__body">';
         // Пустой бейдж всё равно выводим: в списке на ПК он держит колонку «Наличие»
@@ -36,12 +51,13 @@ final class Catalog
         $html .= '<h3 class="card__title">' . e($product['name']) . '</h3>';
         $html .= '<div class="card__sku" title="Артикул"><span class="card__sku-icon">#</span>' . e($product['sku']) . '</div>';
         $html .= '<div class="card__footer">';
-        $html .= '<span class="card__price">' . e(price_label(
-            (string) ($product['price_text'] ?? ''),
-            $product['price'] === null ? null : (float) $product['price'],
-            (string) $product['currency']
-        )) . '</span>';
+        $html .= '<span class="card__price">' . e($priceLabel) . '</span>';
         $html .= '<span class="card__supplier" title="Поставщик">' . e($product['supplier_name']) . '</span>';
+        $html .= '<button type="button" class="order-btn js-order-toggle" data-order-id="' . (int) $product['id'] . '"'
+            . ' title="Добавить в заказ" aria-label="Добавить в заказ" aria-pressed="false">'
+            . '<span class="order-btn__plus" aria-hidden="true">+</span>'
+            . '<span class="order-btn__check" aria-hidden="true">✓</span>'
+            . '</button>';
         $html .= '</div></div></article>';
 
         return $html;

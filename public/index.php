@@ -43,6 +43,11 @@ $isFiltered = CatalogRequest::isFiltered($filters);
   <div class="topbar__inner">
     <a class="topbar__logo" href="index.php"><?= e($siteName) ?></a>
     <div class="topbar__count" id="js-total"><?= e(Catalog::foundLabel($result['total'])) ?></div>
+    <a class="orders-link" href="orders.php" id="js-orders-link">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12L6 6Zm0 0L5 3H2m6 18a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Заказы</span>
+      <span class="orders-link__count is-hidden" id="js-orders-count">0</span>
+    </a>
   </div>
 
   <form class="searchbar" id="js-filter-form" method="get" action="index.php" role="search">
@@ -118,6 +123,7 @@ $isFiltered = CatalogRequest::isFiltered($filters);
       <span>Наличие</span>
       <span>Цена</span>
       <span>Поставщик</span>
+      <span></span>
     </div>
 
     <div class="grid" id="js-grid" aria-busy="false">
@@ -149,6 +155,7 @@ $isFiltered = CatalogRequest::isFiltered($filters);
       'defaultSort' => CatalogRequest::DEFAULT_SORT,
   ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
+<script src="assets/js/order-store.js?v=1" defer></script>
 <script src="assets/js/catalog.js?v=1" defer></script>
 </body>
 </html>

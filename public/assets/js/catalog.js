@@ -100,6 +100,7 @@
 
         if (append) {
           grid.insertAdjacentHTML('beforeend', data.html || '');
+          syncOrderButtons();
         } else {
           grid.innerHTML = data.html || '';
           /* Прокручиваем к началу списка, только когда шторка фильтров закрыта:
@@ -107,6 +108,7 @@
           if (!filtersPanel.classList.contains('is-open')) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
+          syncOrderButtons();
         }
 
         state.page = data.page;
@@ -240,6 +242,57 @@
     new IntersectionObserver(function (entries) {
       topbar.classList.toggle('is-stuck', !entries[0].isIntersecting);
     }).observe(marker);
+  }
+
+  /* ---------- Кнопка «+»: добавить товар в список заказа ---------- */
+
+  var ordersCount = document.getElementById('js-orders-count');
+
+  function syncOrderButtons() {
+    if (!window.OrderStore) { return; }
+    grid.querySelectorAll('.js-order-toggle').forEach(function (button) {
+      var added = window.OrderStore.has(button.getAttribute('data-order-id'));
+      button.classList.toggle('is-added', added);
+      button.setAttribute('aria-pressed', added ? 'true' : 'false');
+      button.setAttribute('title', added ? 'Убрать из списка' : 'Добавить в список');
+      button.setAttribute('aria-label', added ? 'Убрать из списка' : 'Добавить в список');
+    });
+  }
+
+  function syncOrdersCount() {
+    if (!ordersCount || !window.OrderStore) { return; }
+    var total = window.OrderStore.count();
+    ordersCount.textContent = String(total);
+    ordersCount.classList.toggle('is-hidden', total === 0);
+  }
+
+  grid.addEventListener('click', function (event) {
+    var button = event.target.closest('.js-order-toggle');
+    if (!button || !window.OrderStore) { return; }
+
+    var card = button.closest('.card');
+    if (!card) { return; }
+
+    window.OrderStore.toggle({
+      id: card.getAttribute('data-id'),
+      sku: card.getAttribute('data-sku') || '',
+      name: card.getAttribute('data-name') || '',
+      price: card.getAttribute('data-price') || '',
+      stock: card.getAttribute('data-stock') || '',
+      supplier: card.getAttribute('data-supplier') || '',
+      supplier_id: card.getAttribute('data-supplier-id') || '0'
+    });
+    syncOrderButtons();
+    syncOrdersCount();
+  });
+
+  if (window.OrderStore) {
+    window.OrderStore.onChange(function () {
+      syncOrderButtons();
+      syncOrdersCount();
+    });
+    syncOrderButtons();
+    syncOrdersCount();
   }
 
   syncIndicators();

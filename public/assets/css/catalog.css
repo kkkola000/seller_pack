@@ -15,7 +15,7 @@
   --shadow: 0 1px 2px rgba(20, 25, 40, .05), 0 8px 24px rgba(20, 25, 40, .05);
   --header-h: 116px;
   /* Колонки списка на ПК: фото, товар, артикул, наличие, цена, поставщик */
-  --list-cols: 48px minmax(0, 1fr) 180px 150px 120px 170px;
+  --list-cols: 48px minmax(0, 1fr) 180px 150px 120px 170px 44px;
   --list-gap: 16px;
 }
 
@@ -79,6 +79,18 @@ img { max-width: 100%; }
   padding: 0 14px; font-size: 14px; font-weight: 600; color: var(--text); cursor: pointer;
 }
 .filters-toggle svg { width: 20px; height: 20px; flex: none; }
+@media (max-width: 480px) {
+  /* В шапке рядом с логотипом теперь ссылка на заказы — даём логотипу меньше места */
+  .topbar__logo { font-size: 19px; }
+  .topbar__count { font-size: 12px; }
+}
+
+@media (max-width: 400px) {
+  /* Прячем только подпись, счётчик заказа остаётся виден */
+  .orders-link > span:not(.orders-link__count) { display: none; }
+  .orders-link { padding: 8px 10px; gap: 4px; }
+}
+
 @media (max-width: 359px) {
   .filters-toggle span:not(.filters-toggle__dot) { display: none; }
   .filters-toggle { padding: 0 12px; }
@@ -214,6 +226,96 @@ img { max-width: 100%; }
   flex: 0 1 auto; min-width: 0;
 }
 
+/* ---------- Кнопка «в заказ» ---------- */
+.order-btn {
+  flex: none; width: 36px; height: 36px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--accent);
+  font-size: 20px; line-height: 1; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.order-btn:hover { background: var(--accent-soft); }
+.order-btn__check { display: none; font-size: 17px; }
+.order-btn.is-added { background: var(--green); border-color: var(--green); color: #fff; }
+.order-btn.is-added .order-btn__plus { display: none; }
+.order-btn.is-added .order-btn__check { display: block; }
+.order-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.orders-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600;
+  padding: 6px 10px; border-radius: 10px; background: var(--surface);
+}
+.orders-link svg { width: 18px; height: 18px; flex: none; }
+.orders-link span { white-space: nowrap; }
+.orders-link:hover { color: var(--accent); }
+.orders-link__count {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--accent); color: #fff; font-size: 12px; line-height: 20px; text-align: center;
+}
+
+/* ---------- Страница «Заказы» ---------- */
+.orders { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.orders__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.orders__title { font-size: 22px; margin: 4px 0 8px; letter-spacing: -.01em; }
+.orders__count { color: var(--muted); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.orders__hint { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+
+.order-group {
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  margin-bottom: 10px; overflow: hidden;
+}
+.order-group__summary {
+  display: flex; align-items: center; gap: 12px; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer; list-style: none; font-weight: 700;
+}
+.order-group__summary::-webkit-details-marker { display: none; }
+.order-group__summary::after {
+  content: ""; width: 9px; height: 9px; flex: none;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg); transition: transform .15s; margin-left: auto;
+}
+.order-group[open] .order-group__summary::after { transform: rotate(-135deg); }
+.order-group__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.order-group__count { color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.order-group__body { border-top: 1px solid var(--line); padding: 8px 16px 16px; }
+.order-group__actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 12px; }
+
+.table-scroll { overflow-x: auto; }
+.order-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.order-table th, .order-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+.order-table th {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--muted); font-weight: 700; white-space: nowrap;
+}
+.order-table tbody tr:last-child td { border-bottom: 0; }
+.order-row__sku { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; white-space: nowrap; }
+.order-row__price { white-space: nowrap; font-weight: 700; }
+.order-row__stock { color: var(--muted); white-space: nowrap; }
+.order-row__qty { width: 130px; }
+.order-row__action { width: 36px; }
+
+/* Шаг количества: − [N] + */
+.qty { display: inline-flex; align-items: center; gap: 2px; }
+.qty__btn {
+  width: 28px; height: 28px; flex: none; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  font-size: 16px; line-height: 1; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.qty__btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.qty__btn:disabled { opacity: .4; cursor: default; }
+.qty__value {
+  width: 44px; height: 28px; text-align: center; font-size: 14px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text);
+}
+.qty__value:focus { outline: none; border-color: var(--accent); }
+.order-row__remove {
+  border: 0; background: var(--grey-soft); color: var(--muted);
+  width: 26px; height: 26px; border-radius: 50%; font-size: 16px; line-height: 1; cursor: pointer;
+}
+.order-row__remove:hover { background: #fdeaea; color: #d33; }
+
 /* ---------- Прочее ---------- */
 .empty { grid-column: 1 / -1; text-align: center; padding: 48px 16px; color: var(--muted); }
 .empty__icon { font-size: 32px; }
@@ -290,6 +392,7 @@ img { max-width: 100%; }
   .badge { order: 4; justify-self: start; }
   .card__price { order: 5; text-align: right; justify-self: end; background: none; padding: 0; font-size: 16px; }
   .card__supplier { order: 6; text-align: right; justify-self: end; max-width: 100%; }
+  .order-btn { order: 7; justify-self: end; width: 34px; height: 34px; }
 
   .card:hover { box-shadow: 0 2px 4px rgba(20, 25, 40, .08), 0 10px 28px rgba(20, 25, 40, .07); }
 }
